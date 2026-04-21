@@ -10,6 +10,21 @@ uvicorn server.main:app --reload
 
 Server URL: `http://127.0.0.1:8000`
 
+## Settings
+
+Runtime settings are loaded from environment variables (and optional `.env`):
+
+- `APP_NAME` (default: `LLM-Wiki Middleware Delegator`)
+- `APP_ENV` (default: `development`)
+- `HOST` (default: `127.0.0.1`)
+- `PORT` (default: `8000`)
+
+Example:
+
+```bash
+APP_ENV=development uvicorn server.main:app --reload
+```
+
 ## Smoke Checks
 
 ```bash
