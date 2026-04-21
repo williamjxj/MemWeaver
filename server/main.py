@@ -13,7 +13,7 @@ async def ingest(payload: dict) -> dict:
     """Queue an ingest request with a permissive payload."""
     _ = payload
     return {
-        "status": "queued",
+        "status": "accepted",
         "ingest_id": str(uuid4()),
         "queued_at": datetime.now(timezone.utc).isoformat(),
     }
