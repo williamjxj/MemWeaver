@@ -1,0 +1,30 @@
+# llm-wiki middleware delegator
+
+## Stack
+
+- Python 3.12, FastAPI, uvicorn, aiosqlite, httpx, pydantic-settings
+- Ollama at http://localhost:11434, model: qwen3.6
+- SQLite FTS5 for search (wiki.db), markdown files for wiki pages
+- uv for package management, ruff for lint/format
+
+## Default indexing & docs
+
+- @FastAPI
+- @Pydantic
+- @SQLite
+
+## Conventions
+
+- All Ollama calls are async (httpx.AsyncClient)
+- Ingest pipeline runs in background asyncio queue, never blocks HTTP response
+- Wiki pages: YAML frontmatter + markdown, path: wiki/<type>/<slug>.md
+- Raw Q/A JSON: immutable, written once to raw/qa/YYYY-MM-DD/<slug>.json
+- SQLite triggers keep FTS5 index in sync — do not manually insert into *_fts tables
+- Return 202 Accepted from POST /ingest immediately, pipeline runs async
+
+## Do not
+
+- Use sync sqlite3 — always aiosqlite
+- Block the ingest route waiting for Ollama
+- Modify raw/ files after creation
+- Use ChromaDB — not in scope for this phase

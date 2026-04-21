@@ -1,0 +1,40 @@
+# macOS
+.DS_Store
+
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Local env/config secrets
+.env
+.env.*
+!.env.example
+
+# IDE/editor local settings
+.cursor/
+.idea/
+.vscode/
+
+# Runtime artifacts
+*.log
+*.sqlite3
+*.db
+
+# Project runtime data (uncomment if you want these local-only)
+# raw/
+# wiki/
+# db/

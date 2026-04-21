@@ -1,0 +1,19 @@
+{
+  "ingest_id": "ing_20260421_da9cd993",
+  "received_at": "2026-04-21T23:21:01.089940+00:00",
+  "source": "smoke-check",
+  "session_id": null,
+  "original": {
+    "question": "What is X?",
+    "answer": "X is …"
+  },
+  "summary": {
+    "atom": "No Q/A pair was provided for distillation.",
+    "key_claims": [],
+    "detected_topics": [],
+    "detected_entities": []
+  },
+  "wiki_page": "wiki/concepts/what-is-x.md",
+  "model": "minimax-m2.7:cloud",
+  "tags": []
+}

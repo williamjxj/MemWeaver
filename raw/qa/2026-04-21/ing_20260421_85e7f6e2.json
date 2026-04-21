@@ -1,0 +1,32 @@
+{
+  "ingest_id": "ing_20260421_85e7f6e2",
+  "received_at": "2026-04-21T22:37:48.001521+00:00",
+  "source": "test",
+  "session_id": null,
+  "original": {
+    "question": "What is the capital of France?",
+    "answer": "Paris is the capital."
+  },
+  "summary": {
+    "atom": "Paris is the capital of France.",
+    "key_claims": [
+      "Paris is the capital of France."
+    ],
+    "detected_topics": [
+      "geography",
+      "capitals",
+      "france"
+    ],
+    "detected_entities": [
+      "Paris",
+      "France"
+    ]
+  },
+  "wiki_page": "wiki/concepts/geography.md",
+  "model": "minimax-m2.7:cloud",
+  "tags": [
+    "geography",
+    "capitals",
+    "france"
+  ]
+}
