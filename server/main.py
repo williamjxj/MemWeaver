@@ -1,41 +1,39 @@
-"""FastAPI skeleton routes for ingest, query, and health."""
-
 from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
 from fastapi import Body, FastAPI, Query
+from fastapi.responses import JSONResponse
 
-app = FastAPI(title="LLM-Wiki Middleware Delegator")
+from server.config import get_settings
+from server.models.api import HealthResponse, IngestResponse, QueryResponse
+
+settings = get_settings()
+app = FastAPI(title=settings.app_name)
 
 
-@app.post("/ingest", status_code=202)
-async def ingest(payload: Any = Body(default=None)) -> dict:
-    """Queue an ingest request with a permissive payload."""
+@app.post("/ingest", response_model=IngestResponse)
+async def ingest(payload: Any = Body(default=None)) -> JSONResponse:
     _ = payload
-    return {
-        "status": "accepted",
-        "ingest_id": f"ing_{uuid4().hex[:12]}",
-        "queued_at": datetime.now(timezone.utc).isoformat(),
-    }
+    return JSONResponse(
+        status_code=202,
+        content={
+            "status": "accepted",
+            "ingest_id": f"ing_{uuid4().hex[:12]}",
+            "queued_at": datetime.now(timezone.utc).isoformat(),
+        },
+    )
 
 
-@app.get("/query")
+@app.get("/query", response_model=QueryResponse)
 async def query(
     q: str = Query(..., description="Search query"),
-    limit: int = Query(5, ge=1, description="Maximum number of results"),
-) -> dict:
-    """Return a placeholder query response."""
+    limit: int = Query(5, ge=1),
+) -> QueryResponse:
     _ = limit
-    return {
-        "query": q,
-        "results": [],
-        "total": 0,
-        "summarized_answer": None,
-    }
+    return QueryResponse(query=q)
 
 
-@app.get("/health")
-async def health() -> dict:
-    """Return service health status."""
-    return {"status": "ok"}
+@app.get("/health", response_model=HealthResponse)
+async def health() -> HealthResponse:
+    return HealthResponse()
