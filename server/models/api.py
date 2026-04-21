@@ -1,13 +1,13 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, RootModel
 
 
-class IngestRequest(BaseModel):
+class IngestRequest(RootModel[Any]):
     """Permissive ingest request payload for milestone B."""
 
-    payload: Any = None
+    root: Any = None
 
 
 class IngestResponse(BaseModel):

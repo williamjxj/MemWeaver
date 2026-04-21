@@ -1,8 +1,7 @@
 from datetime import datetime, timezone
-from typing import Any
 from uuid import uuid4
 
-from fastapi import Body, Depends, FastAPI, Query
+from fastapi import Body, FastAPI, Query
 
 from server.config import get_settings
 from server.models.api import HealthResponse, IngestRequest, IngestResponse, QueryResponse
@@ -10,13 +9,8 @@ from server.models.api import HealthResponse, IngestRequest, IngestResponse, Que
 settings = get_settings()
 app = FastAPI(title=settings.app_name)
 
-
-async def _parse_ingest_request(payload: Any = Body(default=None)) -> IngestRequest:
-    return IngestRequest(payload=payload)
-
-
 @app.post("/ingest", response_model=IngestResponse, status_code=202)
-async def ingest(request: IngestRequest = Depends(_parse_ingest_request)) -> IngestResponse:
+async def ingest(request: IngestRequest = Body(default=IngestRequest(root=None))) -> IngestResponse:
     _ = request
     return IngestResponse(
         status="accepted",
