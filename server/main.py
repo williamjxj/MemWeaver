@@ -3,18 +3,18 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from fastapi import FastAPI, Query
+from fastapi import Body, FastAPI, Query
 
-app = FastAPI()
+app = FastAPI(title="LLM-Wiki Middleware Delegator")
 
 
 @app.post("/ingest", status_code=202)
-async def ingest(payload: dict) -> dict:
+async def ingest(payload: dict = Body(default_factory=dict)) -> dict:
     """Queue an ingest request with a permissive payload."""
     _ = payload
     return {
         "status": "accepted",
-        "ingest_id": str(uuid4()),
+        "ingest_id": f"ing_{uuid4().hex[:12]}",
         "queued_at": datetime.now(timezone.utc).isoformat(),
     }
 
