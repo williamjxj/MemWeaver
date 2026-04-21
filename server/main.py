@@ -1,6 +1,7 @@
 """FastAPI skeleton routes for ingest, query, and health."""
 
 from datetime import datetime, timezone
+from typing import Any
 from uuid import uuid4
 
 from fastapi import Body, FastAPI, Query
@@ -9,7 +10,7 @@ app = FastAPI(title="LLM-Wiki Middleware Delegator")
 
 
 @app.post("/ingest", status_code=202)
-async def ingest(payload: dict = Body(default_factory=dict)) -> dict:
+async def ingest(payload: Any = Body(default=None)) -> dict:
     """Queue an ingest request with a permissive payload."""
     _ = payload
     return {
