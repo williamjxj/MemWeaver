@@ -524,32 +524,32 @@ INGEST_LOG_LEVEL=INFO
 ## 9. Implementation Phases
 
 ### Phase 1 — Skeleton (Day 1–2)
-- [ ] FastAPI app with `/ingest`, `/query`, `/health` stubs
-- [ ] Pydantic request/response models
-- [ ] SQLite init + migrations (001_init.sql)
-- [ ] Ollama client wrapper with retry
-- [ ] `.env` + `config.py`
+- [x] FastAPI app with `/ingest`, `/query`, `/health` stubs
+- [x] Pydantic request/response models
+- [x] SQLite init + migrations (001_init.sql)
+- [x] Ollama client wrapper with retry
+- [x] `.env` + `config.py`
 
 ### Phase 2 — Ingest Pipeline (Day 3–5)
-- [ ] Summarize step: prompt → Ollama → parse JSON atom
-- [ ] Raw JSON writer (`raw/qa/<date>/<slug>.json`)
-- [ ] Wiki page writer: create new `.md` or patch existing
-- [ ] SQLite upsert: pages + qa_pairs + FTS5 triggers
-- [ ] `index.md` + `log.md` append
+- [x] Summarize step: prompt → Ollama → parse JSON atom
+- [x] Raw JSON writer (`raw/qa/<date>/<slug>.json`)
+- [x] Wiki page writer: create new `.md` or patch existing
+- [x] SQLite upsert: pages + qa_pairs + FTS5 triggers
+- [x] `index.md` + `log.md` append
 
 ### Phase 3 — Query (Day 6–7)
-- [ ] FTS5 search with BM25 ranking
-- [ ] Snippet extraction
-- [ ] `?summarize=true` path through glm-4.7-flash
-- [ ] `/stats` endpoint
+- [x] FTS5 search with BM25 ranking
+- [x] Snippet extraction
+- [x] `?summarize=true` path through glm-4.7-flash
+- [x] `/stats` endpoint
 
 ### Phase 4 — Hardening (Day 8–10)
-- [ ] Contradiction detection in wiki page update
-- [ ] Link graph maintenance (`wiki_links` table)
-- [ ] Orphan page detection in `/stats`
-- [ ] Error handling + dead-letter queue for failed ingests
-- [ ] Unit tests for pipeline steps
-- [ ] Integration test: POST → GET roundtrip
+- [x] Contradiction detection in wiki page update
+- [x] Link graph maintenance (`wiki_links` table)
+- [x] Orphan page detection in `/stats`
+- [x] Error handling + dead-letter queue for failed ingests
+- [x] Unit tests for pipeline steps
+- [x] Integration test: POST → GET roundtrip
 
 ---
 
