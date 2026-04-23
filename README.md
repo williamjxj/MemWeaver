@@ -48,22 +48,12 @@ OLLAMA_MODEL=minimax-m2.7:cloud uvicorn server.main:app --reload
 
 ## Smoke Checks
 
-```bash
-curl -sS http://127.0.0.1:8000/health
-```
+With **uvicorn** already running on the default host/port:
 
 ```bash
-curl -sS "http://127.0.0.1:8000/query?q=hello&limit=3"
+./scripts/smoke-check.sh
 ```
 
-```bash
-curl -sS -X POST http://127.0.0.1:8000/ingest \
-  -H "Content-Type: application/json" \
-  -d '{"question":"What is X?","answer":"X is …","source":"smoke-check"}'
-```
+This calls `GET /health`, `GET /stats`, `GET /query`, `POST /ingest` (expects **202**), then `GET /query?q=smoke` (hits may still be empty until the async worker finishes). Override the base URL with `BASE_URL` if needed.
 
-```bash
-curl -sS http://127.0.0.1:8000/stats
-```
-
-After ingest, poll `GET /stats` or `GET /query?q=…` until the new row appears (pipeline is async).
+After ingest, you can poll `GET /stats` or `GET /query?q=…` until new data appears (pipeline is async).

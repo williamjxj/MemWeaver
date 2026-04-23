@@ -28,15 +28,16 @@ Use environment variables or a local `.env` file to override settings:
 APP_ENV=development HOST=127.0.0.1 PORT=8000 uvicorn server.main:app --reload
 ```
 
-Smoke-check the current API with:
+Smoke-check the API (server must already be running):
 
 ```bash
-curl -sS http://127.0.0.1:8000/health
-curl -sS "http://127.0.0.1:8000/query?q=hello&limit=3"
-curl -sS http://127.0.0.1:8000/stats
-curl -sS -X POST http://127.0.0.1:8000/ingest \
-  -H "Content-Type: application/json" \
-  -d '{"question":"Smoke question?","answer":"Smoke answer.","source":"smoke-check"}'
+./scripts/smoke-check.sh
+```
+
+Same checks against another base URL:
+
+```bash
+BASE_URL=http://127.0.0.1:9000 ./scripts/smoke-check.sh
 ```
 
 Ollama must be running; default model is `minimax-m2.7:cloud` (override with `OLLAMA_MODEL`).
