@@ -145,10 +145,32 @@ async def stats() -> StatsResponse:
         cur = await db.execute("SELECT MAX(created_at) FROM qa_pairs")
         row = await cur.fetchone()
         last_ingest = str(row[0]) if row and row[0] else None
+        cur = await db.execute(
+            """
+            SELECT COUNT(*) FROM pages p
+            WHERE NOT EXISTS (
+                SELECT 1 FROM wiki_links w WHERE w.to_page = p.id
+            )
+            """
+        )
+        orphan_pages = int((await cur.fetchone())[0])
+        cur = await db.execute(
+            """
+            SELECT j.value AS tag, COUNT(*) AS c
+            FROM qa_pairs
+            CROSS JOIN json_each(qa_pairs.tags) AS j
+            WHERE json_valid(qa_pairs.tags)
+            GROUP BY j.value
+            ORDER BY c DESC
+            LIMIT 15
+            """
+        )
+        tag_rows = await cur.fetchall()
+        top_tags: list[list[str | int]] = [[str(r[0]), int(r[1])] for r in tag_rows]
     return StatsResponse(
         total_ingests=total_ingests,
         total_wiki_pages=total_wiki_pages,
-        top_tags=[],
+        top_tags=top_tags,
         last_ingest=last_ingest,
-        orphan_pages=0,
+        orphan_pages=orphan_pages,
     )

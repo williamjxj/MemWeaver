@@ -41,3 +41,22 @@ New atom:
 Key claims (bullets to weave in):
 {claims}
 """
+
+
+CONTRADICTION_CHECK_PROMPT = """\
+You compare a NEW knowledge atom against an EXISTING wiki page body.
+Reply with JSON only: {{"contradicts": true or false, "note": "short reason if true, else empty string"}}
+
+Contradiction means the new atom cannot both be true together with prominent claims already stated on the page (not mere elaboration).
+
+Existing page body (excerpt):
+---
+{existing_excerpt}
+---
+
+New atom:
+{atom}
+
+New key claims (JSON):
+{key_claims_json}
+"""

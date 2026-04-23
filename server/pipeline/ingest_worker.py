@@ -3,6 +3,7 @@
 from asyncio import Queue
 import json
 import logging
+import traceback
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -11,7 +12,8 @@ import aiosqlite
 
 from server.config import Settings
 from server.ollama.client import ollama_generate_json, ollama_generate_text
-from server.pipeline import wiki_files
+from server.pipeline import wiki_files, wiki_graph
+from server.pipeline.contradictions import maybe_prepend_contradiction_block
 from server.pipeline.prompts import SUMMARIZE_PROMPT, WIKI_PAGE_PROMPT
 from server.pipeline.textutil import one_line, slugify
 
@@ -112,6 +114,10 @@ async def run_ingest_pipeline(job: IngestJob, settings: Settings) -> None:
         logger.exception("wiki writer failed for %s; using atom fallback", job.ingest_id)
         wiki_body = f"## Summary\n\n{atom}\n\n## Key claims\n\n{claims_text}\n"
 
+    wiki_body = await maybe_prepend_contradiction_block(
+        settings, existing, atom, key_claims, wiki_body
+    )
+
     tags_json = json.dumps(merged_tags)
     sources_yaml = json.dumps([job.ingest_id])
     title_esc = title.replace('"', "'")
@@ -206,6 +212,8 @@ async def run_ingest_pipeline(job: IngestJob, settings: Settings) -> None:
             "INSERT INTO qa_fts(qa_id, question, answer, atom, tags) VALUES (?, ?, ?, ?, ?)",
             (job.ingest_id, job.question, job.answer, atom, tags_json),
         )
+        await wiki_graph.sync_outbound_links(db, page_id, full_md)
+        await wiki_graph.recompute_inbound_counts(db)
         await db.commit()
 
     wiki_files.append_ingest_log(
@@ -224,5 +232,26 @@ async def ingest_worker_loop(queue: Queue[IngestJob], settings: Settings) -> Non
             await run_ingest_pipeline(job, settings)
         except Exception:
             logger.exception("ingest pipeline failed for %s", job.ingest_id)
+            dlq_doc = {
+                "ingest_id": job.ingest_id,
+                "error": traceback.format_exc(),
+                "job": {
+                    "question": job.question,
+                    "answer": job.answer,
+                    "source": job.source,
+                    "session_id": job.session_id,
+                    "tags": job.tags,
+                    "received_at": job.received_at.isoformat(),
+                },
+            }
+            try:
+                settings.dlq_dir.mkdir(parents=True, exist_ok=True)
+                dlq_path = settings.dlq_dir / f"{job.ingest_id}.json"
+                dlq_path.write_text(
+                    json.dumps(dlq_doc, indent=2, ensure_ascii=False),
+                    encoding="utf-8",
+                )
+            except Exception:
+                logger.exception("failed to write DLQ for %s", job.ingest_id)
         finally:
             queue.task_done()

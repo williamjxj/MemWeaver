@@ -19,6 +19,7 @@ class Settings(BaseSettings):
 
     wiki_dir: Path = Field(default=Path("wiki"))
     raw_dir: Path = Field(default=Path("raw/qa"))
+    dlq_dir: Path = Field(default=Path("raw/failed"))
     db_path: Path = Field(default=Path("db/wiki.db"))
 
     max_queue_size: int = Field(default=100)
