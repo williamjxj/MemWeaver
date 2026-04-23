@@ -47,7 +47,13 @@ Follow Python 3.12 conventions already used in the repo: 4-space indentation, `s
 Prefer small, typed modules over large mixed files. Use concise docstrings where the contract is not obvious.
 
 ## Testing Guidelines
-There is no committed `tests/` suite yet. Until one exists, every change should include manual smoke checks against the three HTTP endpoints above. When adding tests, place them under `tests/`, mirror the server module structure, and name files `test_<module>.py`.
+Run automated tests from the project venv:
+
+```bash
+./venv/bin/pytest tests/ -v
+```
+
+Every change should still include manual smoke checks against the HTTP endpoints above when behavior changes. Add new tests under `tests/` and name files `test_<module>.py`.
 
 ## Commit & Pull Request Guidelines
 Recent history uses Conventional Commit prefixes such as `feat:`, `refactor:`, and `docs:`. Keep commit messages imperative and scoped to one change, for example: `feat: add query response metadata`.
