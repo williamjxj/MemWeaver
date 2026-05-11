@@ -41,3 +41,4 @@ htmlcov/
 
 # Obsidian
 .obsidian/
+.sisyphus/

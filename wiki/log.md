@@ -13,3 +13,7 @@ Ingest `ing_20260421_85e7f6e2` → `wiki/concepts/geography.md`
 ## [2026-04-21] ingest | What is X?
 
 Ingest `ing_20260421_da9cd993` → `wiki/concepts/what-is-x.md`
+
+## [2026-04-23] ingest | Smoke question?
+
+Ingest `ing_20260423_2103298b` → `wiki/concepts/smoke-testing.md`

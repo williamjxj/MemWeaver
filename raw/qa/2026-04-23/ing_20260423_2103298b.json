@@ -1,0 +1,32 @@
+{
+  "ingest_id": "ing_20260423_2103298b",
+  "received_at": "2026-04-23T00:37:59.498792+00:00",
+  "source": "smoke-check",
+  "session_id": null,
+  "original": {
+    "question": "Smoke question?",
+    "answer": "Smoke answer for CI."
+  },
+  "summary": {
+    "atom": "Smoke testing is a preliminary testing approach used in Continuous Integration (CI) pipelines to verify that basic functionality works before running more comprehensive tests.",
+    "key_claims": [
+      "Smoke testing is used for preliminary verification of builds",
+      "CI (Continuous Integration) commonly employs smoke testing"
+    ],
+    "detected_topics": [
+      "smoke-testing",
+      "continuous-integration",
+      "software-testing",
+      "ci-pipeline"
+    ],
+    "detected_entities": []
+  },
+  "wiki_page": "wiki/concepts/smoke-testing.md",
+  "model": "minimax-m2.7:cloud",
+  "tags": [
+    "smoke-testing",
+    "continuous-integration",
+    "software-testing",
+    "ci-pipeline"
+  ]
+}

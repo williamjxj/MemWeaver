@@ -24,3 +24,4 @@ Catalog of compiled pages. Updated when concepts change or new pages are added.
 
 - [[geography]] — Paris is the capital of France.
 - [[what-is-x]] — No Q/A pair was provided for distillation.
+- [[smoke-testing]] — Smoke testing is a preliminary testing approach used in Continuous Integration (CI) pipelines to verify that basic functionality works before running more compr…

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Second Brain Architecture</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #f8f7f4; margin: 0; padding: 16px; }
+  svg text { font-family: system-ui, sans-serif; }
+  .node { cursor: pointer; }
+  .node:hover rect, .node:hover ellipse { opacity: 0.85; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; font-size: 12px; color: #666; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  h2 { font-size: 14px; font-weight: 500; color: #444; margin: 0 0 10px; }
+</style>
+</head>
+<body>
+<h2>Second Brain — Dual-LLM Memory Architecture</h2>
+<div class="legend">
+  <div class="legend-item"><div class="dot" style="background:#1D9E75"></div>Phase A (synchronous)</div>
+  <div class="legend-item"><div class="dot" style="background:#888780"></div>Phase B (async / background)</div>
+  <div class="legend-item"><div class="dot" style="background:#534AB7"></div>Local MacBook</div>
+  <div class="legend-item"><div class="dot" style="background:#185FA5"></div>Cloud API</div>
+</div>
+<svg width="100%" viewBox="0 0 780 560" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arr-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  <marker id="arr-gray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- Local zone background -->
+<rect x="8" y="8" width="530" height="540" rx="14" fill="none" stroke="#534AB7" stroke-width="0.5" stroke-dasharray="7 4" opacity="0.4"/>
+<text x="22" y="26" font-size="11" fill="#534AB7" font-family="system-ui" opacity="0.7">MacBook Pro — local, private</text>
+
+<!-- Cloud zone background -->
+<rect x="556" y="40" width="214" height="106" rx="12" fill="none" stroke="#185FA5" stroke-width="0.5" stroke-dasharray="7 4" opacity="0.4"/>
+<text x="570" y="58" font-size="11" fill="#185FA5" font-family="system-ui" opacity="0.7">Cloud API</text>
+
+<!-- Ollama zone background -->
+<rect x="260" y="398" width="262" height="130" rx="10" fill="none" stroke="#0F6E56" stroke-width="0.5" stroke-dasharray="4 3" opacity="0.5"/>
+<text x="274" y="415" font-size="11" fill="#0F6E56" font-family="system-ui" opacity="0.7">Ollama (local LLM)</text>
+
+<!-- ── NODES ── -->
+
+<!-- Chat App -->
+<g class="node" onclick="alert('Chat App: Next.js 14 frontend. Sends question to Delegator at POST /chat. Receives answer + wiki_slug + topic. Displays WikiSidebar showing which article was used as context.')">
+  <rect x="30" y="44" width="154" height="58" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text x="107" y="67" text-anchor="middle" font-size="13" font-weight="500" fill="#3C3489" font-family="system-ui">Chat app</text>
+  <text x="107" y="85" text-anchor="middle" font-size="11" fill="#534AB7" font-family="system-ui">Next.js 14 + TypeScript</text>
+</g>
+
+<!-- Delegator -->
+<g class="node" onclick="alert('Delegator (FastAPI): The orchestrator. Runs classify_topic(), calls retrieve_summary(), calls ask_public_llm(Q+Sk), then kicks off compile_wiki_async() as a BackgroundTask. Returns answer immediately.')">
+  <rect x="200" y="144" width="190" height="58" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="295" y="167" text-anchor="middle" font-size="13" font-weight="500" fill="#085041" font-family="system-ui">Delegator</text>
+  <text x="295" y="185" text-anchor="middle" font-size="11" fill="#0F6E56" font-family="system-ui">FastAPI · router + orchestrator</text>
+</g>
+
+<!-- Classifier -->
+<g class="node" onclick="alert('Agent-Skills Classifier: Scores question against SKILL_TAXONOMY keyword lists. Returns (topic, [wiki_slugs]). If score=0, escalates to Ollama for LLM-based classification (~1s). Topics: coding / design / ml / business / general.')">
+  <rect x="200" y="236" width="190" height="58" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+  <text x="295" y="259" text-anchor="middle" font-size="13" font-weight="500" fill="#712B13" font-family="system-ui">Agent-Skills classifier</text>
+  <text x="295" y="277" text-anchor="middle" font-size="11" fill="#993C1D" font-family="system-ui">keyword → topic → slug</text>
+</g>
+
+<!-- Wiki Store -->
+<g class="node" onclick="alert('WikiStore: Folder of Markdown files. _index.md maps slugs → keywords → one-liner summaries. Articles follow LLM-wiki format: frontmatter + ## Facts + domain sections + ## Gotchas. Git-tracked, Obsidian-browsable. Capped at 3000 chars for injection.')">
+  <rect x="26" y="326" width="240" height="100" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+  <text x="146" y="350" text-anchor="middle" font-size="13" font-weight="500" fill="#633806" font-family="system-ui">Wiki store (LLM-wiki)</text>
+  <text x="146" y="368" text-anchor="middle" font-size="11" fill="#854F0B" font-family="system-ui">_index.md · keyword routing table</text>
+  <text x="146" y="384" text-anchor="middle" font-size="11" fill="#854F0B" font-family="system-ui">coding/ · design/ · ml/ · business/</text>
+  <text x="146" y="400" text-anchor="middle" font-size="11" fill="#854F0B" font-family="system-ui">versioned · git-tracked · Obsidian</text>
+</g>
+
+<!-- Public LLM -->
+<g class="node" onclick="alert('Public LLM API: Receives Q + Sk (wiki summary) as a priming exchange. Never sees raw chat history. Models: claude-sonnet-4 (primary), gpt-4o (fallback), MiniMax (long-context). Returns An — context-aware, consistent answer.')">
+  <rect x="564" y="60" width="196" height="58" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="662" y="83" text-anchor="middle" font-size="13" font-weight="500" fill="#0C447C" font-family="system-ui">Public LLM API</text>
+  <text x="662" y="101" text-anchor="middle" font-size="11" fill="#185FA5" font-family="system-ui">Anthropic / OpenAI / MiniMax</text>
+</g>
+
+<!-- Value Gate -->
+<g class="node" onclick="alert('Value Gate prompt: Asks Ollama — does this Q+A contain reusable technical facts, project decisions, or user preferences? If no → SKIP (nothing written). If yes → PROCESS + 3 keywords. Filters out conversational noise to keep wiki dense.')">
+  <rect x="268" y="422" width="110" height="88" rx="8" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/>
+  <text x="323" y="454" text-anchor="middle" font-size="13" font-weight="500" fill="#27500A" font-family="system-ui">Value gate</text>
+  <text x="323" y="472" text-anchor="middle" font-size="11" fill="#3B6D11" font-family="system-ui">SKIP</text>
+  <text x="323" y="488" text-anchor="middle" font-size="11" fill="#3B6D11" font-family="system-ui">PROCESS</text>
+</g>
+
+<!-- Compiler -->
+<g class="node" onclick="alert('Compiler prompt: Instructs Ollama to rewrite the existing wiki article integrating the new Q+A. Rules: preserve ALL existing content, only ADD, increment version, maintain LLM-wiki schema (frontmatter + ## Facts + ## Gotchas). Backs up old version first.')">
+  <rect x="396" y="422" width="110" height="88" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+  <text x="451" y="454" text-anchor="middle" font-size="13" font-weight="500" fill="#712B13" font-family="system-ui">Compiler</text>
+  <text x="451" y="472" text-anchor="middle" font-size="11" fill="#993C1D" font-family="system-ui">rewrite +</text>
+  <text x="451" y="488" text-anchor="middle" font-size="11" fill="#993C1D" font-family="system-ui">merge</text>
+</g>
+
+<!-- ── PHASE A ARROWS (green, solid) ── -->
+
+<!-- User → Delegator -->
+<line x1="184" y1="72" x2="230" y2="162" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#arr-green)"/>
+<text x="192" y="122" text-anchor="middle" font-size="11" fill="#1D9E75" font-family="system-ui">Q</text>
+
+<!-- Delegator → Classifier -->
+<line x1="295" y1="202" x2="295" y2="234" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#arr-green)"/>
+
+<!-- Classifier → WikiStore (retrieve) -->
+<line x1="220" y1="266" x2="150" y2="324" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#arr-green)"/>
+<text x="162" y="300" text-anchor="middle" font-size="11" fill="#1D9E75" font-family="system-ui">retrieve Sk</text>
+
+<!-- WikiStore → Delegator (return Sk) -->
+<line x1="266" y1="338" x2="310" y2="286" stroke="#888780" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arr-gray)"/>
+<text x="320" y="322" text-anchor="start" font-size="11" fill="#888780" font-family="system-ui">Sk</text>
+
+<!-- Delegator → Public LLM -->
+<line x1="390" y1="170" x2="562" y2="88" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#arr-green)"/>
+<text x="492" y="118" text-anchor="middle" font-size="11" fill="#1D9E75" font-family="system-ui">Q + Sk</text>
+
+<!-- Public LLM → Delegator (An) -->
+<line x1="562" y1="108" x2="390" y2="184" stroke="#888780" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arr-gray)"/>
+<text x="486" y="158" text-anchor="middle" font-size="11" fill="#888780" font-family="system-ui">An</text>
+
+<!-- Delegator → Chat App (An back) -->
+<line x1="240" y1="174" x2="184" y2="88" stroke="#888780" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arr-gray)"/>
+<text x="196" y="138" text-anchor="end" font-size="11" fill="#888780" font-family="system-ui">An</text>
+
+<!-- ── PHASE B ARROWS (gray dashed) ── -->
+
+<!-- Delegator → Value Gate (async, routes via left) -->
+<path d="M 280 186 L 90 186 L 90 468 L 266 468" fill="none" stroke="#888780" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arr-gray)"/>
+<text x="58" y="330" text-anchor="middle" font-size="11" fill="#888780" font-family="system-ui" transform="rotate(-90,58,330)">Q+An (async)</text>
+
+<!-- Value Gate → Compiler -->
+<line x1="378" y1="466" x2="394" y2="466" stroke="#888780" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arr-gray)"/>
+<text x="386" y="456" text-anchor="middle" font-size="11" fill="#888780" font-family="system-ui">PROCESS</text>
+
+<!-- Compiler → WikiStore -->
+<path d="M 451 422 L 451 378 L 268 378 L 268 376" fill="none" stroke="#888780" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arr-gray)"/>
+<text x="382" y="374" text-anchor="middle" font-size="11" fill="#888780" font-family="system-ui">update article + _index.md</text>
+
+<!-- SKIP label -->
+<text x="252" y="506" text-anchor="middle" font-size="11" fill="#888780" font-family="system-ui">↙ SKIP (no write)</text>
+
+<!-- Phase labels -->
+<text x="308" y="128" text-anchor="middle" font-size="10" fill="#0F6E56" font-family="system-ui" opacity="0.7">— Phase A: synchronous —</text>
+<text x="380" y="396" text-anchor="middle" font-size="10" fill="#888780" font-family="system-ui" opacity="0.7">— Phase B: async background task —</text>
+
+<!-- Click hint -->
+<text x="390" y="548" text-anchor="middle" font-size="11" fill="#888780" font-family="system-ui">click any component for details</text>
+</svg>
+</body>
+</html>
