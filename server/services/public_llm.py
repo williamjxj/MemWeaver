@@ -44,8 +44,12 @@ async def stream_ollama_chat(
         "stream": True,
     }
 
+    headers = {}
+    if settings.ollama_api_key:
+        headers["Authorization"] = f"Bearer {settings.ollama_api_key}"
+
     async with httpx.AsyncClient(timeout=settings.ollama_timeout) as client:
-        async with client.stream("POST", url, json=body) as response:
+        async with client.stream("POST", url, json=body, headers=headers) as response:
             response.raise_for_status()
             async for line in response.aiter_lines():
                 if not line.strip():

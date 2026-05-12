@@ -57,6 +57,7 @@ async def run_ingest_pipeline(job: IngestJob, settings: Settings) -> None:
             settings.ollama_model,
             SUMMARIZE_PROMPT.format(question=job.question, answer=job.answer),
             timeout=settings.ollama_timeout,
+            api_key=settings.ollama_api_key,
         )
     except Exception:
         logger.exception("summarize failed for %s; using fallback atom", job.ingest_id)
@@ -110,6 +111,7 @@ async def run_ingest_pipeline(job: IngestJob, settings: Settings) -> None:
                 claims=claims_text,
             ),
             timeout=settings.ollama_timeout,
+            api_key=settings.ollama_api_key,
         )
     except Exception:
         logger.exception("wiki writer failed for %s; using atom fallback", job.ingest_id)

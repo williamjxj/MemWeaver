@@ -34,8 +34,12 @@ async def embed_text(settings: Settings, text: str) -> list[float]:
     url = f"{settings.ollama_host.rstrip('/')}/api/embeddings"
     body = {"model": EMBEDDING_MODEL, "prompt": text}
 
+    headers = {}
+    if settings.ollama_api_key:
+        headers["Authorization"] = f"Bearer {settings.ollama_api_key}"
+
     async with httpx.AsyncClient(timeout=settings.ollama_timeout) as client:
-        r = await client.post(url, json=body)
+        r = await client.post(url, json=body, headers=headers)
         r.raise_for_status()
         data = r.json()
         embedding: list[float] = data.get("embedding", [])

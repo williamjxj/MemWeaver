@@ -142,8 +142,11 @@ async def health() -> HealthResponse:
     cfg = app.state.settings
     ollama_status = "reachable"
     try:
+        headers = {}
+        if cfg.ollama_api_key:
+            headers["Authorization"] = f"Bearer {cfg.ollama_api_key}"
         async with httpx.AsyncClient(timeout=5.0) as client:
-            r = await client.get(f"{cfg.ollama_host.rstrip('/')}/api/tags")
+            r = await client.get(f"{cfg.ollama_host.rstrip('/')}/api/tags", headers=headers)
             r.raise_for_status()
     except Exception:
         ollama_status = "unreachable"

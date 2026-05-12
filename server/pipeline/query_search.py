@@ -122,4 +122,5 @@ async def synthesize_answer(
         settings.ollama_model,
         prompt,
         timeout=settings.ollama_timeout,
+        api_key=settings.ollama_api_key,
     )

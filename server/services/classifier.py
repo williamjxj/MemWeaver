@@ -81,6 +81,7 @@ async def classify_with_ollama(
                 "Reply with only the category word."
             ),
             timeout=30.0,
+            api_key=settings.ollama_api_key,
         )
         result = result.strip().lower()
         if result in SKILL_TAXONOMY:

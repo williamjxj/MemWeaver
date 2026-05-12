@@ -14,8 +14,9 @@ class Settings(BaseSettings):
 
     # Env: OLLAMA_HOST, OLLAMA_MODEL, OLLAMA_TIMEOUT, WIKI_DIR, RAW_DIR, DB_PATH, ...
     ollama_host: str = Field(default="http://127.0.0.1:11434")
-    ollama_model: str = Field(default="minimax-m2.7:cloud")
+    ollama_model: str = Field(default="qwen3.5:latest")
     ollama_timeout: float = Field(default=120.0)
+    ollama_api_key: str = Field(default="")
 
     wiki_dir: Path = Field(default=Path("wiki"))
     raw_dir: Path = Field(default=Path("raw/qa"))
