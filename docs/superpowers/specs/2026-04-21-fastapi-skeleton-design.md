@@ -130,7 +130,7 @@ Automated tests are deferred to the next milestone.
 ## Risks and Mitigations
 
 - Risk: endpoint shapes drift from the longer-term plan.
-  - Mitigation: keep response keys aligned with `docs/s2-claude-plan.md`.
+  - Mitigation: keep response keys aligned with `docs/v2/s2-claude-plan.md`.
 - Risk: adding too much “future” scaffolding creates churn.
   - Mitigation: defer non-essential modules to later milestones.
 
@@ -141,4 +141,4 @@ After this skeleton is complete, the next recommended milestone is **Milestone B
 - `docs/superpowers/specs/2026-04-21-milestone-b-typed-models-settings-design.md`
 - `docs/superpowers/plans/2026-04-21-milestone-b-typed-models-settings.md`
 
-Following Milestone B, introduce DB schema/migrations and ingest/query wiring incrementally per `docs/s2-claude-plan.md`.
+Following Milestone B, introduce DB schema/migrations and ingest/query wiring incrementally per `docs/v2/s2-claude-plan.md`.

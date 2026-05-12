@@ -1,4 +1,4 @@
-"""Ollama prompts aligned with docs/s2-claude-plan.md §6."""
+"""Ollama prompts aligned with docs/v2/s2-claude-plan.md §6."""
 
 SUMMARIZE_PROMPT = """\
 You are a knowledge distiller. Given a Q/A pair from a chat session, extract the core knowledge atom.

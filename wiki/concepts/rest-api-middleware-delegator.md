@@ -10,7 +10,7 @@ updated: 2026-04-21
 
 # REST API — middleware delegator
 
-HTTP surface between any LLM client and the LLM-wiki memory store. Full target contract: `docs/s2-claude-plan.md` §3. Implementation entrypoint: `server/main.py`; models: `server/models/api.py`.
+HTTP surface between any LLM client and the LLM-wiki memory store. Full target contract: `docs/v2/s2-claude-plan.md` §3. Implementation entrypoint: `server/main.py`; models: `server/models/api.py`.
 
 ## Base URL
 
@@ -20,7 +20,7 @@ Default local: `http://127.0.0.1:8000` (`uvicorn server.main:app --reload`).
 
 ### `GET /health`
 
-Liveness plus `ollama`, `db`, `queue_depth`, `wiki_pages`, `qa_pairs` (see `docs/s2-claude-plan.md` §3.3).
+Liveness plus `ollama`, `db`, `queue_depth`, `wiki_pages`, `qa_pairs` (see `docs/v2/s2-claude-plan.md` §3.3).
 
 ```bash
 curl -sS http://127.0.0.1:8000/health
@@ -49,7 +49,7 @@ curl -sS -X POST http://127.0.0.1:8000/ingest \
 
 ### `GET /stats`
 
-Aggregate counters (`total_ingests`, `total_wiki_pages`, `last_ingest`, …). See `docs/s2-claude-plan.md` §3.4.
+Aggregate counters (`total_ingests`, `total_wiki_pages`, `last_ingest`, …). See `docs/v2/s2-claude-plan.md` §3.4.
 
 ```bash
 curl -sS http://127.0.0.1:8000/stats

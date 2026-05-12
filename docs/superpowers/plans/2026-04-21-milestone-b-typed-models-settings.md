@@ -66,7 +66,7 @@ class HealthResponse(BaseModel):
     status: str = "ok"
 ```
 
-**Implementation note:** The repository uses `RootModel[Any]` for the permissive ingest body so clients may send a top-level JSON array or object (matching the Step 2 verification snippet and `docs/s2-claude-plan.md` evolution). The snippet above shows the `payload`-field alternative; prefer the design spec for the canonical contract.
+**Implementation note:** The repository uses `RootModel[Any]` for the permissive ingest body so clients may send a top-level JSON array or object (matching the Step 2 verification snippet and `docs/v2/s2-claude-plan.md` evolution). The snippet above shows the `payload`-field alternative; prefer the design spec for the canonical contract.
 
 - [x] **Step 2: Verify models import cleanly**
 

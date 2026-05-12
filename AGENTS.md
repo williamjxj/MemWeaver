@@ -3,11 +3,11 @@
 ## Project Structure & Module Organization
 `server/` contains the runnable API. `server/main.py` defines the FastAPI app with routes: `/ingest` (async Q/A ingestion), `/query` (FTS5 + vector search with `?mode=keyword|semantic|hybrid`), `/chat` (SSE streaming with wiki context injection), `/health`, `/stats`, and `/wiki/{slug}`. Request/response schemas live in `server/models/api.py`. Runtime configuration is in `server/config/settings.py`. The ingest **worker** (`server/pipeline/ingest_worker.py`) calls Ollama, writes `raw/qa/…`, updates `wiki/concepts/…`, syncs SQLite + FTS (`server/db/`), and **embeds each page** via `server/pipeline/embedder.py` for semantic search. Vector search uses `sqlite-vec` (loadable extension via `server/db/vec.py`) with a `page_embeddings` vec0 table (migration `002_semantic_search.sql`). The hybrid RRF merge lives in `server/pipeline/query_search.py`. Backend service modules live under `server/services/` (classifier, wiki_retriever, public_llm).
 
-`chat-app/` is a **Next.js 16** frontend (App Router, Tailwind CSS, shadcn/ui). The main chat page is `app/page.tsx`, the SSE proxy is `app/api/chat/route.ts`, and components live under `components/`. It communicates with the FastAPI backend via the `/api/chat` Route Handler and direct `GET /wiki/{slug}` calls.
+`chat-app/` is a **Next.js 16** frontend (App Router, Tailwind CSS, shadcn/ui). The main chat page is `app/page.tsx`, the SSE proxy is `app/api/chat/route.ts`, and components live under `components/`. It communicates with the FastAPI backend via the `/api/chat` Route Handler and direct `GET /wiki/{slug}` calls. Assistant messages are rendered with `react-markdown` (GFM) for rich output; user messages display as plain text.
 
 `docs/` holds product notes, plans, and implementation specs. Treat it as design context, not executable code. Ignore generated `__pycache__/` directories and avoid committing local artifacts such as `.DS_Store`.
 
-`wiki/` is the **LLM-wiki** markdown vault (index, log, concepts) for this service; `wiki/LLM_WIKI_SCHEMA.md` ties [Karpathy’s LLM-Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) and `docs/s2-claude-plan.md` to REST usage. `raw/` will hold immutable ingest JSON once the pipeline is implemented.
+`wiki/` is the **LLM-wiki** markdown vault (index, log, concepts) for this service; `wiki/LLM_WIKI_SCHEMA.md` ties [Karpathy’s LLM-Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) and `docs/v2/s2-claude-plan.md` to REST usage. `raw/` will hold immutable ingest JSON once the pipeline is implemented.
 
 ## Build, Test, and Development Commands
 Install dependencies once:

@@ -100,7 +100,7 @@ Split-pane layout matching v2 spec §7:
 2. `ChatWindow` calls `POST /api/chat` (Next.js API route) with `{ question }`
 3. Next.js route forwards `POST http://localhost:8000/chat` with the same body
 4. FastAPI returns SSE stream; Next.js route reads the stream and relays events to browser
-5. Browser parses SSE `token` events and renders each chunk in a new `MessageBubble`
+5. Browser parses SSE `token` events and renders each chunk in a `MessageBubble` with `react-markdown` (GFM) for assistant messages; user messages stay as plain text
 6. On `done` event: parse `wiki_slug`, `topic`, `context_chars` → update `WikiSidebar`
 7. On `error` event: show error state in the message bubble
 
@@ -116,6 +116,8 @@ event: error\ndata: {"message": "..."}\n\n
 ### 3.5 State Management
 
 Simple React state in `page.tsx`. No external state library. Messages live only in memory (lost on refresh).
+
+**Streaming state**: A single `isStreaming` boolean gates the streaming cursor. The accumulating answer is held in a local `fullAnswer` variable (not state) and written directly into the `messages` array on each token to avoid dead re-renders.
 
 ```typescript
 interface Message { id: string; role: "user" | "assistant"; content: string; }
@@ -184,7 +186,6 @@ async def chat(req: ChatRequest):
 
 ## 7. Future
 
-- Markdown rendering in chat bubbles
 - Message persistence (localStorage)
 - Conversation history sidebar
 - Settings panel (model selector, wiki toggle)

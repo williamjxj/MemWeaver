@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship the six Phase 4 items from `docs/s2-claude-plan.md` §9: contradiction guardrails on wiki updates, `wiki_links` graph maintenance with correct `inbound_links`, real `orphan_pages` and `top_tags` on `/stats`, a file-based dead-letter queue for failed ingests, and automated tests (unit + one POST→GET integration path).
+**Goal:** Ship the six Phase 4 items from `docs/v2/s2-claude-plan.md` §9: contradiction guardrails on wiki updates, `wiki_links` graph maintenance with correct `inbound_links`, real `orphan_pages` and `top_tags` on `/stats`, a file-based dead-letter queue for failed ingests, and automated tests (unit + one POST→GET integration path).
 
 **Architecture:** Keep orchestration in `ingest_worker.py` but extract focused helpers: (1) pure `[[wikilink]]` parsing + DB sync in a small module, (2) optional post-generation contradiction pass via Ollama JSON before writing markdown, (3) DLQ writer invoked only from the worker `except` path, (4) stats queries as plain SQL in `main.py` or a thin `server/db/stats_queries.py`. Recompute `inbound_links` with a single SQL `UPDATE` after each ingest’s link sync so counts stay consistent without per-row application logic.
 

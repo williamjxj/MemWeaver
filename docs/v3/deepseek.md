@@ -1,7 +1,7 @@
 # mem-weaver v2 — Analysis & Roadmap
 
 > **Status:** v1 backend pipeline complete. v2 focuses on closing the feedback loop, wiring in Agent-Skills taxonomy, and adding the frontend.  
-> **Based on:** codebase audit + three vision docs (`docs/s2-claude-plan.md`, `docs/2nd-brain-implementation.md`, `docs/architecture-decision-inspiration.md`).
+> **Based on:** codebase audit + three vision docs (`docs/v2/s2-claude-plan.md`, `docs/2nd-brain-implementation.md`, `docs/architecture-decision-inspiration.md`).
 
 ---
 
@@ -482,5 +482,5 @@ No direct competitor is doing the Dual-LLM split well. That's the moat.
 ---
 
 *Generated from codebase audit: server/*, wiki/*, raw/*, docs/*, tests/*  
-*Plan references: docs/s2-claude-plan.md, docs/2nd-brain-implementation.md, docs/architecture-decision-inspiration.md*  
+*Plan references: docs/v2/s2-claude-plan.md, docs/2nd-brain-implementation.md, docs/architecture-decision-inspiration.md*  
 *Ecosystem analysis: Karpathy gist (Apr 2026), Spisak second-brain (Apr 2026), Mem0/Zep docs, SuperLocalMemory V3.3, M2A paper (Feb 2026), Atlan RAG vs Wiki (Apr 2026)*

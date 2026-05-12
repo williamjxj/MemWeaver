@@ -52,16 +52,14 @@ export function ChatWindow({
             Ask anything — wiki memory is injected automatically
           </div>
         )}
-        {messages.map((m) => (
-          <MessageBubble key={m.id} role={m.role} content={m.content} />
-        ))}
-        {isStreaming && messages[messages.length - 1]?.role === "assistant" && (
+        {messages.map((m, i) => (
           <MessageBubble
-            role="assistant"
-            content={messages[messages.length - 1].content}
-            isStreaming
+            key={m.id}
+            role={m.role}
+            content={m.content}
+            isStreaming={isStreaming && i === messages.length - 1 && m.role === "assistant"}
           />
-        )}
+        ))}
         {isStreaming && !messages.some((m) => m.role === "assistant" && m.content) && (
           <div className="flex justify-start">
             <div className="bg-gray-100 rounded-lg px-4 py-2 text-sm text-gray-500">

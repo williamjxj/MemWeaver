@@ -1,6 +1,6 @@
 # Raw layer (immutable sources)
 
-Per `docs/s2-claude-plan.md` §4.1, accepted Q/A pairs will eventually be written as immutable JSON under:
+Per `docs/v2/s2-claude-plan.md` §4.1, accepted Q/A pairs will eventually be written as immutable JSON under:
 
 `raw/qa/YYYY-MM-DD/<slug>.json`
 

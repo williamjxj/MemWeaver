@@ -16,7 +16,7 @@ class QueryMode(str, Enum):
 
 
 class IngestPayload(BaseModel):
-    """Structured ingest body per docs/s2-claude-plan.md §3.1."""
+    """Structured ingest body per docs/v2/s2-claude-plan.md §3.1."""
 
     question: str = Field(..., min_length=1)
     answer: str = Field(..., min_length=1)

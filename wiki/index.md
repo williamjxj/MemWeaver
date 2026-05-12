@@ -13,17 +13,9 @@ Catalog of compiled pages. Updated when concepts change or new pages are added.
 ## External references
 
 - [Karpathy — LLM Wiki (gist)](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
-- `docs/s2-claude-plan.md` — SQLite, FTS5, Ollama, directory layout
-- `docs/s2-notebooklm.md` — refined workflow and Agent Skills / markdown tiers
+- `docs/v2/s2-claude-plan.md` — SQLite, FTS5, Ollama, directory layout
+- `docs/v2/s2-notebooklm.md` — refined workflow and Agent Skills / markdown tiers
 
 ## Schema for agents
 
 - [`LLM_WIKI_SCHEMA.md`](LLM_WIKI_SCHEMA.md) — rules for ingest/query/lint and REST usage
-
-## Auto-index (pipeline)
-
-- [[geography]] — Paris is the capital of France.
-- [[what-is-x]] — No Q/A pair was provided for distillation.
-- [[smoke-testing]] — Smoke testing is a preliminary testing approach used in Continuous Integration (CI) pipelines to verify that basic functionality works before running more compr…
-- [[smoke-question]] — Smoke answer for CI.
-- Semantic search — `GET /query?q=...&mode=keyword|semantic|hybrid`. nomic-embed-text (768d) via Ollama, stored in sqlite-vec `page_embeddings` table, FTS5 + vector merged via RRF. See [`LLM_WIKI_SCHEMA.md`](LLM_WIKI_SCHEMA.md) for details.

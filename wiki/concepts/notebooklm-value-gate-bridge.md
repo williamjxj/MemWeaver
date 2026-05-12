@@ -10,7 +10,7 @@ updated: 2026-04-21
 
 # NotebookLM-style gate and async delegator
 
-`docs/s2-notebooklm.md` refines the Karpathy pattern for a **Mac second brain**: public LLM for answers, **Ollama** locally as a memory compiler, FastAPI as delegator, markdown + optional vector/graph indices.
+`docs/v2/s2-notebooklm.md` refines the Karpathy pattern for a **Mac second brain**: public LLM for answers, **Ollama** locally as a memory compiler, FastAPI as delegator, markdown + optional vector/graph indices.
 
 ## Principles tied to REST
 
@@ -22,4 +22,4 @@ updated: 2026-04-21
 
 - [[rest-api-middleware-delegator]] — HTTP entrypoints
 - [[karpathy-pattern-and-this-repo]] — gist mapping
-- `docs/s2-notebooklm.md` — full narrative
+- `docs/v2/s2-notebooklm.md` — full narrative

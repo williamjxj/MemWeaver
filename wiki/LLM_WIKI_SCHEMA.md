@@ -1,6 +1,6 @@
 # Agent schema — REST delegator and LLM-Wiki
 
-This file is the **schema layer** (Karpathy’s “third layer”): conventions for how an agent should treat this repository’s wiki, raw store, and HTTP API together. Primary idea reference: [Karpathy — LLM Wiki (gist)](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). Product plan for this service: `docs/s2-claude-plan.md`. NotebookLM-style value gate and async handoff: `docs/s2-notebooklm.md`.
+This file is the **schema layer** (Karpathy’s “third layer”): conventions for how an agent should treat this repository’s wiki, raw store, and HTTP API together. Primary idea reference: [Karpathy — LLM Wiki (gist)](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). Product plan for this service: `docs/v2/s2-claude-plan.md`. NotebookLM-style value gate and async handoff: `docs/v2/s2-notebooklm.md`.
 
 ## Three layers (mapped to this repo)
 
@@ -8,7 +8,7 @@ This file is the **schema layer** (Karpathy’s “third layer”): conventions 
 |--------|-----------|----------|
 | **Raw** | Immutable inputs (Q/A JSON once pipeline persists them) | `raw/qa/YYYY-MM-DD/` (see s2 plan) |
 | **Wiki** | Persistent, interlinked markdown the system and humans read | `wiki/` (this tree) |
-| **Schema** | Rules for ingest, query, lint, logging | **This file** + `docs/s2-claude-plan.md` |
+| **Schema** | Rules for ingest, query, lint, logging | **This file** + `docs/v2/s2-claude-plan.md` |
 
 ## Operations over HTTP (delegator)
 
@@ -33,7 +33,7 @@ The system now supports hybrid search — FTS5 BM25 + vector cosine similarity m
 
 Hybrid mode (`GET /query?q=attention&mode=hybrid`) runs FTS5 and vector search in parallel, then merges ranks. It catches semantic matches that keyword-only search misses — e.g., searching "memory" also surfaces pages about "recall."
 
-Always prefer **deterministic retrieval** (this wiki’s `index.md`, SQLite FTS) before burning context on full-graph reasoning, per `docs/s2-notebooklm.md` and thread consensus in the gist comments.
+Always prefer **deterministic retrieval** (this wiki’s `index.md`, SQLite FTS) before burning context on full-graph reasoning, per `docs/v2/s2-notebooklm.md` and thread consensus in the gist comments.
 
 ## Mandatory wiki maintenance
 

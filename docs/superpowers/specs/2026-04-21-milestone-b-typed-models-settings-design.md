@@ -4,7 +4,7 @@
 
 Layer explicit **Pydantic v2** request and response models plus **`pydantic-settings`** configuration on top of the Milestone A FastAPI skeleton, without changing observable HTTP contracts or adding persistence, queues, or Ollama.
 
-This milestone bridges `docs/superpowers/specs/2026-04-21-fastapi-skeleton-design.md` and the longer-term architecture in `docs/s2-claude-plan.md` by making route contracts and app metadata **typed and documented in code**, while keeping handlers mock-only.
+This milestone bridges `docs/superpowers/specs/2026-04-21-fastapi-skeleton-design.md` and the longer-term architecture in `docs/v2/s2-claude-plan.md` by making route contracts and app metadata **typed and documented in code**, while keeping handlers mock-only.
 
 ## Relationship to Other Docs
 
@@ -13,7 +13,7 @@ This milestone bridges `docs/superpowers/specs/2026-04-21-fastapi-skeleton-desig
 | `docs/superpowers/specs/2026-04-21-fastapi-skeleton-design.md` | Milestone A: single-file app, no settings module |
 | **This spec** | Milestone B: `server/models`, `server/config`, typed routes |
 | `docs/superpowers/plans/2026-04-21-milestone-b-typed-models-settings.md` | Executable checklist for implementing this spec |
-| `docs/s2-claude-plan.md` | Target product: SQLite, FTS5, Ollama, markdown wiki (later milestones) |
+| `docs/v2/s2-claude-plan.md` | Target product: SQLite, FTS5, Ollama, markdown wiki (later milestones) |
 
 ## Scope
 
@@ -83,7 +83,7 @@ Behavior and status codes match `2026-04-21-fastapi-skeleton-design.md` unless n
 
 `PORT` and `HOST` inform documented run examples; binding is still usually chosen by the `uvicorn` CLI unless wired later.
 
-## Alignment with `docs/s2-claude-plan.md`
+## Alignment with `docs/v2/s2-claude-plan.md`
 
 - Response keys for `/query` and fields for `/ingest` acceptance remain compatible with the planned client and with the richer ingest schema (`question`, `answer`, …) to be introduced in a **later** milestone; this milestone does **not** implement that schema yet.
 - Settings names should remain stable so deployment (Docker, systemd, etc.) can set `APP_NAME` / `APP_ENV` without churn.
@@ -121,7 +121,7 @@ Behavior and status codes match `2026-04-21-fastapi-skeleton-design.md` unless n
 
 ## Next Milestone Preview
 
-- Persist Q/A and wiki artifacts (SQLite + markdown paths per `docs/s2-claude-plan.md`).
+- Persist Q/A and wiki artifacts (SQLite + markdown paths per `docs/v2/s2-claude-plan.md`).
 - Background tasks for ingest pipeline after returning `202`.
 - Ollama client and summarization prompts.
 - Optional: pytest suite and CI (deferred from Milestones A and B by scope).

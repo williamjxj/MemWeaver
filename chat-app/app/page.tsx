@@ -20,7 +20,6 @@ export default function Home() {
   const [activeTopic, setActiveTopic] = useState("");
   const [wikiContent, setWikiContent] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
-  const [streamingContent, setStreamingContent] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const loadWikiContent = useCallback(async (slug: string) => {
@@ -36,14 +35,12 @@ export default function Home() {
 
     setMessages((prev) => [...prev, userMsg, assistantMsg]);
     setIsStreaming(true);
-    setStreamingContent("");
 
     let fullAnswer = "";
 
     await streamChat(question, {
       onToken(token) {
         fullAnswer += token;
-        setStreamingContent(fullAnswer);
         setMessages((prev) => {
           const updated = [...prev];
           const last = updated[updated.length - 1];
@@ -60,12 +57,10 @@ export default function Home() {
           loadWikiContent(data.wiki_slug);
         }
         setIsStreaming(false);
-        setStreamingContent("");
       },
       onError(message: string) {
         setError(message);
         setIsStreaming(false);
-        setStreamingContent("");
         setMessages((prev) => {
           const updated = [...prev];
           const last = updated[updated.length - 1];
@@ -80,7 +75,6 @@ export default function Home() {
 
   function handleStop() {
     setIsStreaming(false);
-    setStreamingContent("");
   }
 
   return (

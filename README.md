@@ -1,6 +1,6 @@
 # LLM-Wiki Middleware Delegator
 
-FastAPI backend + Next.js chat frontend that implements the **s2 ingest pipeline** ([`docs/s2-claude-plan.md`](docs/s2-claude-plan.md)). Ingest Q/A pairs, search via FTS5 + vector embeddings, and chat with wiki-memory augmented LLM — all fully local via Ollama.
+FastAPI backend + Next.js chat frontend that implements the **s2 ingest pipeline** ([`docs/v2/s2-claude-plan.md`](docs/v2/s2-claude-plan.md)). Ingest Q/A pairs, search via FTS5 + vector embeddings, and chat with wiki-memory augmented LLM — all fully local via Ollama.
 
 ## Architecture
 
