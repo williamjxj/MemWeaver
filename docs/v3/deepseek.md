@@ -1,7 +1,7 @@
 # mem-weaver v2 — Analysis & Roadmap
 
 > **Status:** v1 backend pipeline complete. v2 focuses on closing the feedback loop, wiring in Agent-Skills taxonomy, and adding the frontend.  
-> **Based on:** codebase audit + three vision docs (`docs/s2-claude-plan.md`, `docs/second-brain-implementation-plan.md`, `docs/architecture-decision-inspiration.md`).
+> **Based on:** codebase audit + three vision docs (`docs/s2-claude-plan.md`, `docs/2nd-brain-implementation.md`, `docs/architecture-decision-inspiration.md`).
 
 ---
 
@@ -185,7 +185,7 @@ flowchart LR
 | Wiki page prompt | `server/pipeline/prompts.py` | existing body + atom + claims → updated markdown |
 | Contradiction check | `server/pipeline/contradictions.py` | LLM compares new atom vs existing; prepends `> ⚠️` blockquote |
 | Wikilink graph | `server/pipeline/wiki_graph.py` | Regex `[[wikilink]]` parser, `sync_outbound_links()`, `recompute_inbound_counts()` |
-| Query search | `server/pipeline/query_search.py` | FTS5 BM25 ranking, optional Ollama synthesis |
+| Query search (hybrid) | `server/pipeline/query_search.py` | FTS5 BM25 + vector (nomic-embed-text) RRF merge, `?mode=keyword|semantic|hybrid` |
 | SQLite schema | `server/db/database.py` + `migrations/001_init.sql` | `pages`, `qa_pairs`, `wiki_links`, `pages_fts`, `qa_fts`, auto-sync triggers |
 | Immutable raw JSON store | — Writes to `raw/qa/<date>/<ingest_id>.json` | Written before any processing |
 | Markdown wiki vault | — Writes `wiki/concepts/<slug>.md` | Frontmatter + body, Obsidian-compatible |
@@ -193,6 +193,12 @@ flowchart LR
 | Wiki index + log | — Updates `wiki/index.md`, appends to `wiki/log.md` | Deterministic maintenance |
 | Tests | `tests/test_*.py` | Unit tests (textutil, fts_match_terms, wiki_graph, contradictions) + integration test |
 | Smoke check script | `scripts/smoke-check.sh` | Tests all 4 endpoints |
+| Embedding pipeline | `server/pipeline/embedder.py` | `embed_text()`, `embed_page()`, `embed_pages_batch()` — nomic-embed-text via Ollama, stored in sqlite-vec |
+| Vector search | `server/pipeline/search_semantic.py` | Cosine distance query against `page_embeddings` vec0 table |
+| sqlite-vec loader | `server/db/vec.py` | Async extension loader for aiosqlite connections |
+| Embedding migration | `server/db/migrations/002_semantic_search.sql` | `page_embeddings` vec0 virtual table (768-d) |
+| Embedding backfill | `scripts/backfill_embeddings.py` | One-shot backfill for existing pages |
+| Embedding tests | `tests/test_embedder.py`, `test_semantic_search.py`, `test_hybrid_search.py` | 8 tests: dims, distance ordering, RRF merge, empty DB |
 
 ### 3.2 What's Not Built (The Gap)
 
@@ -202,7 +208,7 @@ flowchart LR
 | Agent-Skills taxonomy in code | `second-brain-plan.md` §4 | ❌ In docs only | Topic routing relies entirely on Ollama's `detected_topics`. No fast keyword pre-classification. |
 | Frontend (Next.js chat app) | `second-brain-plan.md` §7 | ❌ Not built | No UI to interact with. API-only. |
 | WikiSidebar / active-context display | `second-brain-plan.md` §7 | ❌ Not built | User can't see which wiki article is being used as context. |
-| Semantic search (embeddings) | `s2-plan.md` Phase 4, `second-brain-plan.md` Phase 4 | ❌ Not built | FTS5 BM25 misses semantic relationships. "RAG" won't match "retrieval-augmented generation." |
+| Semantic search (embeddings) | `s2-plan.md` Phase 4, `second-brain-plan.md` Phase 4 | ✅ Built | nomic-embed-text (768d) via Ollama, sqlite-vec storage, hybrid RRF merge with FTS5. |
 | Wiki page hierarchy (sources/entities/synthesis) | `architecture-decision.md` §3.3 | ❌ Flat `concepts/` only | No distinction between "what is X?", "who is Y?", "how do X and Y relate?" |
 | Memory lifecycle / decay | `architecture-decision.md` §3.5 | ❌ Not built | All facts live forever at equal weight. No archiving stale content. |
 | Cross-vault / domain isolation | `architecture-decision.md` §3.3 | ❌ Not built | Single vault only. No separation by project or topic domain. |
@@ -220,9 +226,9 @@ flowchart LR
 
 ### 4.2 Search & Retrieval
 
-- **Keyword-only search:** FTS5 BM25 is fast and deterministic but has zero semantic understanding. "RAG" won't surface a page about "retrieval-augmented generation" unless the exact acronym appears.
-- **No multi-article retrieval:** Only one page per query. For complex questions spanning multiple topics, there's no mechanism to concatenate context from 2-3 articles.
-- **No query-time LLM re-ranking:** The optional `?summarize=true` synthesizes but doesn't re-rank. Results ordering is purely BM25 score.
+- **No query-time LLM re-ranking:** The optional `?summarize=true` synthesizes but doesn't re-rank. Results ordering is purely BM25 + RRF score.
+- **Multi-article retrieval via RRF:** Hybrid mode (`mode=hybrid`) merges FTS5 and vector search via RRF, returning top-K results from both channels. This effectively handles multi-topic queries.
+- **FTS5-only fallback still default for backward compatibility:** The `mode` default is `hybrid` but `keyword` mode preserves the original deterministic BM25 behavior.
 
 ### 4.3 Memory & Lifecycle
 
@@ -258,7 +264,7 @@ flowchart LR
 | Feature | Effort | Rationale |
 |---------|--------|-----------|
 | **Next.js chat frontend** | 3-5 days | Provides the UI for Phase A interaction. WikiSidebar shows context. |
-| **Embedding + hybrid search** | 3-5 days | `nomic-embed-text` via Ollama → cosine similarity → RRF merge with BM25. Catches semantic matches. |
+| **Embedding + hybrid search** | 3-5 days | ✅ **Done.** `nomic-embed-text` via Ollama, sqlite-vec storage, `search_hybrid()` with RRF merge. `?mode=keyword|semantic|hybrid` on `GET /query`. |
 | **Wiki page hierarchy** | 1-2 days | Add `wiki/entities/`, `wiki/sources/`, `wiki/synthesis/`. Route pages by type. |
 | **Multi-article retrieval** | 1 day | Top-2/3 slugs concatenated with char cap (e.g., 6000 chars total). |
 
@@ -368,7 +374,7 @@ POST /chat
 | Step | Description |
 |------|-------------|
 | 8. | Build Next.js chat app with WikiSidebar |
-| 9. | Add `nomic-embed-text` embeddings + hybrid search (FTS5 + cosine RRF) |
+| 9. | Add `nomic-embed-text` embeddings + hybrid search (FTS5 + cosine RRF) | ✅ Done. `server/pipeline/embedder.py`, `search_semantic.py`, `query_search.py` (RRF). |
 | 10. | Add `last_accessed_at` + `access_count` to pages table |
 
 ### Medium-term (within two weeks)
@@ -427,7 +433,7 @@ Most commercial systems (Mem0, Zep) are **cloud-only** and **vector/graph hybrid
 | **Local-first** | ✅ Ollama + SQLite | ❌ Cloud | ❌ Cloud | ✅ | ✅ |
 | **Self-contained, zero infra** | ✅ pip install + Ollama | ❌ Needs cloud keys | ❌ Needs cloud | ✅ Markdown only | ✅ Markdown only |
 | **Phase A (use memory in chat)** | ❌ Missing | ✅ | ✅ | ❌ | ❌ Planned |
-| **Semantic search** | ❌ FTS5 only | ✅ Vector native | ✅ Vector + graph | ❌ index.md only | ❌ Planned |
+| **Semantic search** | ✅ FTS5 + vector RRF | ✅ Vector native | ✅ Vector + graph | ❌ index.md only | ❌ Planned |
 | **MCP interface** | ❌ Not built | ❌ | ❌ | ❌ | ❌ |
 | **Multi-user** | ❌ Single | ✅ | ✅ | ❌ | ❌ |
 
@@ -444,7 +450,7 @@ Most commercial systems (Mem0, Zep) are **cloud-only** and **vector/graph hybrid
 | Gap | Why It Matters |
 |-----|----------------|
 | **Phase A doesn't exist** | The system compiles knowledge into a beautiful wiki but has no endpoint to *use* it in a conversation. Without `POST /chat`, mem-weaver is a write-only pipeline. |
-| **No semantic search** | FTS5 BM25 works for 500+ pages, but a user searching "attention mechanism" won't find a page about "self-attention" unless the exact phrase is present. Every production memory system has vector search. |
+| **No semantic search** | FTS5 BM25 works for 500+ pages, but a user searching "attention mechanism" won't find a page about "self-attention" unless the exact phrase is present. Every production memory system has vector search. | ✅ **Resolved.** Hybrid search via nomic-embed-text + sqlite-vec + RRF merge added in Phase 4. Semantic and keyword modes coexist. |
 | **No MCP interface** | The Model Context Protocol is becoming the standard way LLMs interact with tools. A memory system without MCP can't be used by Claude Code, Cursor, or any MCP-compatible agent. |
 
 ### 8.6 Strategic Recommendation
@@ -458,7 +464,7 @@ Don't try to out-feature Mem0 or Zep. They have teams, funding, and a head start
 | **1** | Build Phase A — `POST /chat` | Turns a pipeline into a product. The single feature that closes the feedback loop. |
 | **2** | Add an MCP server | Expose `memory_search` and `memory_add` as MCP tools. Makes mem-weaver usable by Claude Code, Cursor, etc. without building your own frontend. Higher ROI than a chat UI. |
 | **3** | Position as "memory for AI coding agents" | Your target user isn't "someone who wants a second brain." It's "a developer who wants their AI coding agent to remember project context across sessions." That's a real, underserved need. |
-| **4** | Add semantic search last | FTS5 handles the first 500 pages fine. Phase A + MCP give 80% of the value with 20% of the effort. |
+| **4** | Add semantic search last | ✅ **Done.** Hybrid search (FTS5 + nomic-embed-text + RRF) implemented as Phase 4. FTS5 still works as fallback keyword mode. |
 
 ### 8.7 Verdict
 
@@ -476,5 +482,5 @@ No direct competitor is doing the Dual-LLM split well. That's the moat.
 ---
 
 *Generated from codebase audit: server/*, wiki/*, raw/*, docs/*, tests/*  
-*Plan references: docs/s2-claude-plan.md, docs/second-brain-implementation-plan.md, docs/architecture-decision-inspiration.md*  
+*Plan references: docs/s2-claude-plan.md, docs/2nd-brain-implementation.md, docs/architecture-decision-inspiration.md*  
 *Ecosystem analysis: Karpathy gist (Apr 2026), Spisak second-brain (Apr 2026), Mem0/Zep docs, SuperLocalMemory V3.3, M2A paper (Feb 2026), Atlan RAG vs Wiki (Apr 2026)*

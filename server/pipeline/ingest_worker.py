@@ -14,6 +14,7 @@ from server.config import Settings
 from server.ollama.client import ollama_generate_json, ollama_generate_text
 from server.pipeline import wiki_files, wiki_graph
 from server.pipeline.contradictions import maybe_prepend_contradiction_block
+from server.pipeline.embedder import embed_page
 from server.pipeline.prompts import SUMMARIZE_PROMPT, WIKI_PAGE_PROMPT
 from server.pipeline.textutil import one_line, slugify
 
@@ -215,6 +216,12 @@ async def run_ingest_pipeline(job: IngestJob, settings: Settings) -> None:
         await wiki_graph.sync_outbound_links(db, page_id, full_md)
         await wiki_graph.recompute_inbound_counts(db)
         await db.commit()
+
+    # Embed the page for semantic search (non-blocking, already async background)
+    try:
+        await embed_page(settings, page_id, full_md)
+    except Exception:
+        logger.exception("embedding failed for page %s (search degrades gracefully)", page_id)
 
     wiki_files.append_ingest_log(
         settings.wiki_dir,

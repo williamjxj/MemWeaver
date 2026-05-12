@@ -1,11 +1,11 @@
-Based on above and attached references, design a plan how to implement in macbook pro: use Ollama+LLM-Wiki+Agent-Skils together as second-brain for dynamic and consistent memory processing. 
+Based on above and attached references, design a plan how to implement in macbook pro: use Ollama+LLM-Wiki+Agent-Skills together as second-brain for dynamic and consistent memory processing. 
 Design the architecture, tech full-stack, 3rd tools/apis/cloud saas etc.
 
-Please refere to the following which is a rough workflow I have in mind.
+Please refer to the following which is a rough workflow I have in mind.
 1. at the beginning, Chat APP ask a question to public LLM
 2. public LLM return answer
 3. Chat APP extracts Question and Answer after chat
-4. It pass the Qestion+Answer pair to internal gateway/delegator/middle layer
+4. It pass the Question+Answer pair to internal gateway/delegator/middle layer
 5. the delegator ingest Q/A pair to Ollama LLM to generate a wiki-alike summary, like Karpathy's LLM-wiki 'ingest' process.
 6. the wiki will be saved in wiki-alike system with indexed.
 7. here LLM-wiki should be refer to Agent-Skill mechamism as well, to bring helpful and useful ideas

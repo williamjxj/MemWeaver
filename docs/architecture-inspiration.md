@@ -20,13 +20,13 @@
 | **Obsidian vault** (`wiki/`) | ✅ Working | `index.md`, `log.md`, `concepts/` pages, `LLM_WIKI_SCHEMA.md` |
 | **Raw Q/A store** (`raw/qa/`) | ✅ Working | Immutable JSON per ingest |
 | **Tests** (`tests/`) | ✅ Partial | `test_ingest_integration.py`, `test_fts_match_terms.py`, `test_contradictions.py`, etc. |
-| **Frontend (Next.js)** | ❌ Not built | Planned in `second-brain-implementation-plan.md` but not started |
-| **Semantic search (embeddings)** | ❌ Not built | Planned for Phase 4 in s2-plan, and Phase 4 in second-brain-plan |
-| **Agent-Skills taxonomy** | ⚠️ Partial | Keyword taxonomy in `second-brain-implementation-plan.md` but not wired into code |
+| **Frontend (Next.js)** | ❌ Not built | Planned in `2nd-brain-implementation.md` but not started |
+| **Semantic search (embeddings)** | ✅ Built | nomic-embed-text (768d) via Ollama, sqlite-vec storage, hybrid RRF merge with FTS5, `?mode=keyword|semantic|hybrid` |
+| **Agent-Skills taxonomy** | ⚠️ Partial | Keyword taxonomy in `2nd-brain-implementation.md` but not wired into code |
 
 ### 1.2 What's Planned (From Your Docs)
 
-Your `second-brain-implementation-plan.md` (the "Nick Spisak inspired" plan) envisions:
+Your `2nd-brain-implementation.md` (the "Nick Spisak inspired" plan) envisions:
 - **Phase A (sync):** Classify → retrieve wiki summary → ask public LLM with summary injected
 - **Phase B (async):** Ollama value gate → compile wiki → update `_index.md`
 - **Frontend:** Next.js chat app with WikiSidebar
@@ -182,7 +182,7 @@ wiki/
 
 ### 3.4 Decision 4: Agent-Skills Taxonomy — Keyword or LLM-Based?
 
-Your `second-brain-implementation-plan.md` defines a fixed taxonomy:
+Your `2nd-brain-implementation.md` defines a fixed taxonomy:
 ```python
 SKILL_TAXONOMY = {
     "coding":    { "keywords": ["python", "fastapi", "debug", ...], "wiki_paths": [...] },
@@ -242,7 +242,7 @@ Based on your current state + ecosystem best practices:
 |----------|---------|-----|
 | **P0** | `GET /chat` endpoint (Phase A) | Your entire system compiles wiki but never *uses* it for context injection. This is the missing link. |
 | **P0** | Agent-Skills taxonomy in code | `SKILL_TAXONOMY` exists in docs but not wired into `server/pipeline/` |
-| **P1** | Chat app frontend (Next.js) | `second-brain-implementation-plan.md` has the code; just needs to be built |
+| **P1** | Chat app frontend (Next.js) | `2nd-brain-implementation.md` has the code; just needs to be built |
 | **P1** | WikiSidebar in frontend | Shows user which wiki article is being used as context |
 | **P2** | `POST /lint` endpoint | Health-check: orphans, broken wikilinks, contradictions |
 
@@ -250,10 +250,10 @@ Based on your current state + ecosystem best practices:
 
 | Feature | Notes |
 |---------|-------|
-| **nomic-embed-text embeddings** | Add to Ollama pipeline; store as BLOB in SQLite (`sqlite-vec`) or separate table |
-| **Hybrid search** | FTS5 BM25 + cosine similarity → Reciprocal Rank Fusion |
-| **Multi-article retrieval** | Top-2 slugs, concatenated (with char cap) |
-| **qmd as alternative** | Install as MCP server; compare results against your FTS5 + embedding approach |
+| **nomic-embed-text embeddings** | ✅ Done. `server/pipeline/embedder.py` + `page_embeddings` vec0 table |
+| **Hybrid search** | ✅ Done. `search_hybrid()` in `query_search.py` with RRF (k=60) |
+| **Multi-article retrieval** | ✅ Done. Hybrid returns top-2 via RRF merge; `limit` param controls depth |
+| **qmd as alternative** | Not needed. Current solution (FTS5 + nomic-embed-text + RRF) matches or exceeds qmd functionality |
 
 ### 4.3 Future (v2+)
 
@@ -341,7 +341,7 @@ Your project already implements Karpathy's compilation pattern (via the ingest p
                     ────────    ───────     ───────────    ───────────────
 Compilation:        Ollama       Ollama      Ollama         ✅ Ollama
 Storage:            Markdown     Markdown    SQLite+MD      ✅ SQLite+MD
-Search:             index.md     qmd         FTS5 BM25      ✅ FTS5 + add embeddings
+Search:             index.md     qmd         FTS5 BM25      ✅ FTS5 + nomic-embed-text + RRF
 Topic routing:       Manual       Skills       Docs only      ✅ Wire taxonomy into code
 Chat endpoint:       ❌           Planned      ❌              ✅ Build /chat
 Frontend:           Obsidian     Obsidian     ❌              ✅ Next.js (planned)

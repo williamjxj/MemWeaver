@@ -1,5 +1,6 @@
-"""FTS-backed wiki search."""
+"""FTS-backed wiki search + hybrid (FTS + vector) via Reciprocal Rank Fusion."""
 
+import asyncio
 import json
 from typing import Any
 
@@ -8,6 +9,10 @@ import aiosqlite
 from server.config import Settings
 from server.db.database import fts_match_terms
 from server.ollama.client import ollama_generate_text
+from server.pipeline.embedder import embed_text
+from server.pipeline.search_semantic import search_semantic
+
+RRF_CONSTANT = 60  # standard RRF rank offset
 
 
 async def search_pages(settings: Settings, q: str, limit: int) -> list[dict[str, Any]]:
@@ -17,7 +22,7 @@ async def search_pages(settings: Settings, q: str, limit: int) -> list[dict[str,
         db.row_factory = aiosqlite.Row
         cur = await db.execute(
             """
-            SELECT p.title, p.type, p.path, p.tags, p.updated_at AS updated,
+            SELECT p.id, p.title, p.type, p.path, p.tags, p.updated_at AS updated,
                    p.inbound_links,
                    snippet(pages_fts, 2, '<b>', '</b>', '...', 28) AS snippet,
                    bm25(pages_fts) AS score
@@ -39,6 +44,7 @@ async def search_pages(settings: Settings, q: str, limit: int) -> list[dict[str,
             tags = []
         out.append(
             {
+                "id": r["id"],
                 "title": r["title"],
                 "type": r["type"],
                 "path": r["path"],
@@ -50,6 +56,53 @@ async def search_pages(settings: Settings, q: str, limit: int) -> list[dict[str,
             }
         )
     return out
+
+
+async def search_hybrid(
+    settings: Settings,
+    q: str,
+    limit: int,
+) -> list[dict[str, Any]]:
+    """Hybrid search: FTS5 BM25 + vector cosine similarity, merged via RRF.
+
+    Runs both searches in parallel, merges via Reciprocal Rank Fusion,
+    and returns the top ``limit`` results.
+    """
+    query_vec = await embed_text(settings, q)
+
+    # Fetch extra candidates from each channel for richer merge
+    fts_limit = limit * 3
+    vec_limit = limit * 3
+
+    fts_task = search_pages(settings, q, fts_limit)
+    vec_task = search_semantic(settings, query_vec, vec_limit)
+
+    fts_results, vec_results = await asyncio.gather(fts_task, vec_task)
+
+    # RRF merge keyed on page id
+    merged: dict[str, dict[str, Any]] = {}
+
+    for rank, r in enumerate(fts_results):
+        pid = r["id"]
+        merged[pid] = {
+            "data": r,
+            "rrf_score": 1.0 / (RRF_CONSTANT + rank + 1),
+        }
+
+    for rank, r in enumerate(vec_results):
+        pid = r["id"]
+        if pid in merged:
+            merged[pid]["rrf_score"] += 1.0 / (RRF_CONSTANT + rank + 1)
+        else:
+            merged[pid] = {
+                "data": r,
+                "rrf_score": 1.0 / (RRF_CONSTANT + rank + 1),
+            }
+
+    sorted_results = sorted(
+        merged.values(), key=lambda x: x["rrf_score"], reverse=True
+    )
+    return [r["data"] for r in sorted_results[:limit]]
 
 
 async def synthesize_answer(

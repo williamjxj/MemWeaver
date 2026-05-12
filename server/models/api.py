@@ -1,9 +1,18 @@
 """HTTP API Pydantic models (s2-aligned)."""
 
 from datetime import datetime
+from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, Field
+
+
+class QueryMode(str, Enum):
+    """Search mode for ``GET /query``."""
+
+    KEYWORD = "keyword"  # FTS5 BM25 only
+    SEMANTIC = "semantic"  # Vector cosine similarity only
+    HYBRID = "hybrid"  # FTS5 + vector merged via Reciprocal Rank Fusion
 
 
 class IngestPayload(BaseModel):
@@ -29,6 +38,7 @@ class QueryResponse(BaseModel):
     """Response contract for GET /query."""
 
     query: str
+    mode: QueryMode = QueryMode.HYBRID
     results: list[dict[str, Any]] = Field(default_factory=list)
     total: int = 0
     summarized_answer: str | None = None
@@ -43,6 +53,19 @@ class HealthResponse(BaseModel):
     queue_depth: int | None = None
     wiki_pages: int | None = None
     qa_pairs: int | None = None
+
+
+class ChatRequest(BaseModel):
+    """Request body for POST /chat (streaming)."""
+
+    question: str = Field(..., min_length=1)
+
+
+class WikiResponse(BaseModel):
+    """Response body for GET /wiki/{slug}."""
+
+    slug: str
+    content: str
 
 
 class StatsResponse(BaseModel):

@@ -428,7 +428,7 @@ local-first, human-readable memory tool that actually works.
 - [README.md](../README.md) — Project overview
 - [AGENTS.md](../AGENTS.md) — Repository guidelines
 - [CLAUDE.md](../CLAUDE.md) — Claude-specific guidance
-- [second-brain-implementation-plan.md](../second-brain-implementation-plan.md) — Full vision doc
+- [2nd-brain-implementation.md](../2nd-brain-implementation.md) — Full vision doc
 - [s2-claude-plan.md](../s2-claude-plan.md) — Current implementation plan
 - [architecture-decision-inspiration.md](../architecture-decision-inspiration.md) — Architecture decisions
 - [Karpathy LLM-wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) — Original concept

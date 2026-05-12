@@ -64,7 +64,7 @@ The user never waits for Phase B. The wiki silently improves after each turn.
 | Local LLM runtime | **Ollama** | latest | Serves local model |
 | Wiki compiler model | **llama3.2:3b** or **mistral:7b** | — | Summarization, classification |
 | Semantic search (phase 2) | **nomic-embed-text** via Ollama | — | Embedding-based retrieval |
-| Vector store (phase 2) | **ChromaDB** | latest | Local semantic search |
+| Vector store (phase 2) | **sqlite-vec** | 0.1.9 | Local semantic search via vec0 extension, 768-d nomic-embed-text embeddings |
 | Wiki storage | **Markdown files + git** | — | Human-readable, versioned |
 | Wiki index | `_index.md` keyword table | — | Zero-latency routing |
 | Wiki GUI | **Obsidian** | latest | Browse/edit wiki |
@@ -881,11 +881,13 @@ WIKI_DIR=../wiki
 - [ ] Settings panel: model selector, wiki injection toggle
 
 ### Phase 4 — Semantic retrieval upgrade (1-2 weeks)
-- [ ] Pull `nomic-embed-text` via Ollama
-- [ ] `embedder.py`: embed each article on write, store in ChromaDB
-- [ ] Replace keyword scoring with cosine similarity search
-- [ ] Multi-article retrieval: top-2 slugs, concatenated (with char cap)
-- [ ] Evaluate: does semantic search improve retrieval quality?
+- [x] Pull `nomic-embed-text` via Ollama
+- [x] `server/pipeline/embedder.py`: embed each article on write, store in sqlite-vec0 table
+- [x] `server/pipeline/search_semantic.py`: vector cosine similarity search
+- [x] `server/pipeline/query_search.py`: hybrid FTS5 + vector via Reciprocal Rank Fusion
+- [x] `?mode=keyword|semantic|hybrid` query parameter on `GET /query`
+- [x] Backfill script: `scripts/backfill_embeddings.py`
+- [x] Tests: `tests/test_embedder.py`, `tests/test_semantic_search.py`, `tests/test_hybrid_search.py`
 
 ### Phase 5 — Knowledge graph overlay (advanced)
 - [ ] Integrate **Graphiti** or **Zep** as graph memory layer
