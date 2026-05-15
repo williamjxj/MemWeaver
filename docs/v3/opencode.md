@@ -423,14 +423,6 @@ local-first, human-readable memory tool that actually works.
 
 ## References
 
-- [v2.md](../v2.md) — Full detailed analysis, architecture, and phased roadmap
-- [frontend-admin-integration.md](./frontend-admin-integration.md) — Frontend tool integration
-- [README.md](../README.md) — Project overview
-- [AGENTS.md](../AGENTS.md) — Repository guidelines
-- [CLAUDE.md](../CLAUDE.md) — Claude-specific guidance
-- [2nd-brain-implementation.md](../2nd-brain-implementation.md) — Full vision doc
-- [s2-claude-plan.md](../s2-claude-plan.md) — Current implementation plan
-- [architecture-decision-inspiration.md](../architecture-decision-inspiration.md) — Architecture decisions
 - [Karpathy LLM-wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) — Original concept
 - [Data Science Dojo LLM Wiki Tutorial](https://datasciencedojo.com/blog/llm-wiki-tutorial) — April 2026 tutorial
 - [DeepMind Evo-Memory (2025)](https://arxiv.org/abs/2511.20857) — Self-evolving memory validation

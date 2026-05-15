@@ -1,5 +1,4 @@
-## Q
-How LLM manage its memory? please help me research this solution:
+## Q How LLM manage its memory? please help me research this solution:
 
 1. a general app chat with LLM via public API, such as Anthropic, chatgpt, or miniMax.
 2. app ask a question, and the LLM APIs return an answer.
