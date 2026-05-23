@@ -8,6 +8,7 @@ import pytest
 from server.config import Settings
 from server.db.database import init_db
 from server.models.api import QueryMode
+from server.pipeline.ingest_worker import IngestJob
 from server.services import memory_api
 
 
@@ -124,3 +125,46 @@ async def test_search_wiki_keyword(db_settings: Settings) -> None:
     assert result["error"] is None
     assert result["total"] >= 1
     assert any("fastapi" in (r.get("title") or "").lower() for r in result["results"])
+
+
+@pytest.mark.asyncio
+async def test_enqueue_ingest_accepted(isolated_settings: Settings) -> None:
+    queue: asyncio.Queue[IngestJob] = asyncio.Queue(maxsize=10)
+
+    result = await memory_api.enqueue_ingest(
+        isolated_settings,
+        queue,
+        question="What is MCP?",
+        answer="Model Context Protocol exposes tools to LLMs.",
+        source="test",
+        tags=["mcp"],
+    )
+
+    assert result["status"] == "accepted"
+    assert result["ingest_id"].startswith("ing_")
+    assert queue.qsize() == 1
+    job = queue.get_nowait()
+    assert job.question == "What is MCP?"
+
+
+@pytest.mark.asyncio
+async def test_enqueue_ingest_queue_full(isolated_settings: Settings) -> None:
+    # asyncio.Queue(maxsize=0) is unbounded; use maxsize=1 and fill it.
+    queue: asyncio.Queue[IngestJob] = asyncio.Queue(maxsize=1)
+    await memory_api.enqueue_ingest(
+        isolated_settings,
+        queue,
+        question="First",
+        answer="Answer one",
+    )
+    assert queue.qsize() == 1
+
+    with pytest.raises(memory_api.IngestQueueFullError) as exc:
+        await memory_api.enqueue_ingest(
+            isolated_settings,
+            queue,
+            question="Q",
+            answer="A",
+        )
+
+    assert exc.value.queue_depth == 1
