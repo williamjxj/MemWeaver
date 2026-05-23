@@ -119,22 +119,12 @@ async def search_wiki(
         logger.exception("search_wiki failed for query=%r mode=%s", q, mode)
         return {"error": "search failed", "detail": "unexpected error during search"}
 
-    slim_results = [
-        {
-            "title": r.get("title"),
-            "path": r.get("path"),
-            "snippet": r.get("snippet"),
-            "score": r.get("score"),
-            "tags": r.get("tags"),
-        }
-        for r in rows
-    ]
     return {
         "error": None,
         "query": q,
         "mode": mode.value,
-        "total": len(slim_results),
-        "results": slim_results,
+        "total": len(rows),
+        "results": rows,
     }
 
 

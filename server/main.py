@@ -5,8 +5,6 @@ import json
 import logging
 from contextlib import asynccontextmanager, suppress
 from datetime import datetime, timezone
-from pathlib import Path
-from uuid import uuid4
 
 import aiosqlite
 import httpx
@@ -26,19 +24,15 @@ from server.models.api import (
     StatsResponse,
     WikiResponse,
 )
-from server.pipeline.embedder import embed_text
-from server.pipeline.ingest_worker import IngestJob, ingest_worker_loop
-from server.pipeline.query_search import search_hybrid, search_pages, synthesize_answer
-from server.pipeline.search_semantic import search_semantic
+from server.pipeline.ingest_worker import ingest_worker_loop
+from server.pipeline.query_search import synthesize_answer
+from server.services import memory_api
 from server.services.classifier import SKILL_TAXONOMY, classify_topic, classify_with_ollama
+from server.services.memory_api import IngestQueueFullError
 from server.services.public_llm import stream_ollama_chat
 from server.services.wiki_retriever import retrieve_summary
 
 logger = logging.getLogger(__name__)
-
-
-def _make_ingest_id() -> str:
-    return f"ing_{datetime.now(timezone.utc).strftime('%Y%m%d')}_{uuid4().hex[:8]}"
 
 
 @asynccontextmanager
@@ -72,26 +66,25 @@ app.add_middleware(
 async def ingest(payload: IngestPayload) -> IngestResponse:
     """Accept Q/A, return 202; Ollama + wiki + DB run on a background worker."""
     cfg = app.state.settings
-    ingest_id = _make_ingest_id()
     received = payload.timestamp or datetime.now(timezone.utc)
     if received.tzinfo is None:
         received = received.replace(tzinfo=timezone.utc)
-    job = IngestJob(
-        ingest_id=ingest_id,
-        question=payload.question.strip(),
-        answer=payload.answer.strip(),
-        source=payload.source or "unknown",
-        session_id=payload.session_id,
-        tags=payload.tags,
-        received_at=received,
-    )
     try:
-        app.state.ingest_queue.put_nowait(job)
-    except asyncio.QueueFull:
-        raise HTTPException(status_code=503, detail="ingest queue is full") from None
+        result = await memory_api.enqueue_ingest(
+            cfg,
+            app.state.ingest_queue,
+            question=payload.question,
+            answer=payload.answer,
+            source=payload.source or "unknown",
+            tags=payload.tags,
+            session_id=payload.session_id,
+            received_at=received,
+        )
+    except IngestQueueFullError as err:
+        raise HTTPException(status_code=503, detail="ingest queue is full") from err
     return IngestResponse(
         status="accepted",
-        ingest_id=ingest_id,
+        ingest_id=result["ingest_id"],
         queued_at=datetime.now(timezone.utc),
     )
 
@@ -111,14 +104,10 @@ async def query(
 ) -> QueryResponse:
     cfg = app.state.settings
 
-    # Route to the appropriate search function
-    if mode == QueryMode.KEYWORD:
-        rows = await search_pages(cfg, q, limit)
-    elif mode == QueryMode.SEMANTIC:
-        query_vec = await embed_text(cfg, q)
-        rows = await search_semantic(cfg, query_vec, limit)
-    else:  # hybrid (default)
-        rows = await search_hybrid(cfg, q, limit)
+    payload = await memory_api.search_wiki(cfg, q, limit=limit, mode=mode)
+    if payload.get("error"):
+        raise HTTPException(status_code=400, detail=payload["error"])
+    rows = payload["results"]
 
     summarized: str | None = None
     if summarize and rows:
@@ -129,10 +118,10 @@ async def query(
             logger.exception("query summarization failed")
             summarized = None
     return QueryResponse(
-        query=q,
+        query=payload["query"],
         mode=mode,
         results=rows,
-        total=len(rows),
+        total=payload["total"],
         summarized_answer=summarized,
     )
 
@@ -179,42 +168,13 @@ async def health() -> HealthResponse:
 @app.get("/stats", response_model=StatsResponse)
 async def stats() -> StatsResponse:
     cfg = app.state.settings
-    async with aiosqlite.connect(cfg.db_path) as db:
-        cur = await db.execute("SELECT COUNT(*) FROM qa_pairs")
-        total_ingests = int((await cur.fetchone())[0])
-        cur = await db.execute("SELECT COUNT(*) FROM pages")
-        total_wiki_pages = int((await cur.fetchone())[0])
-        cur = await db.execute("SELECT MAX(created_at) FROM qa_pairs")
-        row = await cur.fetchone()
-        last_ingest = str(row[0]) if row and row[0] else None
-        cur = await db.execute(
-            """
-            SELECT COUNT(*) FROM pages p
-            WHERE NOT EXISTS (
-                SELECT 1 FROM wiki_links w WHERE w.to_page = p.id
-            )
-            """
-        )
-        orphan_pages = int((await cur.fetchone())[0])
-        cur = await db.execute(
-            """
-            SELECT j.value AS tag, COUNT(*) AS c
-            FROM qa_pairs
-            CROSS JOIN json_each(qa_pairs.tags) AS j
-            WHERE json_valid(qa_pairs.tags)
-            GROUP BY j.value
-            ORDER BY c DESC
-            LIMIT 15
-            """
-        )
-        tag_rows = await cur.fetchall()
-        top_tags: list[list[str | int]] = [[str(r[0]), int(r[1])] for r in tag_rows]
+    data = await memory_api.get_wiki_stats(cfg, app.state.ingest_queue)
     return StatsResponse(
-        total_ingests=total_ingests,
-        total_wiki_pages=total_wiki_pages,
-        top_tags=top_tags,
-        last_ingest=last_ingest,
-        orphan_pages=orphan_pages,
+        total_ingests=data["qa_pairs"],
+        total_wiki_pages=data["wiki_pages"],
+        top_tags=data["top_tags"],
+        last_ingest=data["last_ingest"],
+        orphan_pages=data["orphan_pages"],
     )
 
 
@@ -249,19 +209,15 @@ async def chat(req: ChatRequest):
 
         # Phase B: enqueue wiki compilation in the background
         if full_answer.strip():
-            ingest_id = _make_ingest_id()
-            received = datetime.now(timezone.utc)
-            job = IngestJob(
-                ingest_id=ingest_id,
-                question=req.question.strip(),
-                answer=full_answer.strip(),
-                source="chat",
-                session_id=None,
-                tags=[topic],
-                received_at=received,
-            )
             try:
-                app.state.ingest_queue.put_nowait(job)
+                await memory_api.enqueue_ingest(
+                    cfg,
+                    app.state.ingest_queue,
+                    question=req.question.strip(),
+                    answer=full_answer.strip(),
+                    source="chat",
+                    tags=[topic],
+                )
             except Exception:
                 logger.exception("failed to enqueue background compilation for chat")
 
@@ -272,9 +228,5 @@ async def chat(req: ChatRequest):
 async def get_wiki(slug: str):
     """Fetch a wiki article by slug. Returns markdown content."""
     cfg = app.state.settings
-    article_path = Path(cfg.wiki_dir) / f"{slug}.md"
-    if article_path.exists():
-        content = article_path.read_text(encoding="utf-8")
-    else:
-        content = ""
-    return WikiResponse(slug=slug, content=content)
+    data = await memory_api.get_wiki_page(cfg, slug)
+    return WikiResponse(**data)
