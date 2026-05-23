@@ -8,3 +8,4 @@ aiosqlite>=0.20,<1
 sqlite-vec>=0.1.9,<1
 pytest>=8,<9
 pytest-asyncio>=0.24,<1
+fastmcp>=2.0,<4
