@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "mem-weaver": {
+      "command": "./venv/bin/python",
+      "args": ["-m", "server.mcp_server"],
+      "cwd": "/absolute/path/to/mem-weaver",
+      "env": {
+        "OLLAMA_MODEL": "qwen3.5:latest"
+      }
+    }
+  }
+}

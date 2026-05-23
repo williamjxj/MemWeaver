@@ -89,6 +89,35 @@ pnpm dev
 
 Open `http://localhost:3000` in a browser — you'll see a split-pane chat UI.
 
+## MCP Server (IDE integration)
+
+Expose wiki memory to Cursor, Claude Code, or Opencode as MCP tools — without running the FastAPI server or chat frontend.
+
+### Prerequisites
+
+1. Ollama running (`ollama serve`) with your model pulled
+2. Python venv installed (`pip install -r requirements.txt`)
+3. **Do not** run `uvicorn` while using MCP ingest (single ingest worker)
+
+### Setup
+
+1. Copy [`mcp.json.example`](mcp.json.example) to `.cursor/mcp.json` (or add to your global MCP config)
+2. Set `cwd` to this repo's absolute path
+3. Restart Cursor
+
+### Tools
+
+| Tool | Purpose |
+|------|---------|
+| `wiki_search` | Hybrid FTS5 + vector search over compiled wiki |
+| `wiki_ingest` | Save Q/A to async wiki compile pipeline |
+| `wiki_get_page` | Fetch full markdown by slug |
+| `wiki_stats` | Vault counters + Ollama reachability |
+
+### Manual smoke check
+
+Ask the agent: "Search my wiki for FastAPI patterns" — it should call `wiki_search`.
+
 ## How to Use
 
 ### Chat (Main Interface — Recommended Starting Point)
