@@ -1,0 +1,21 @@
+{
+  "ingest_id": "ing_20260523_0678b38e",
+  "received_at": "2026-05-23T16:58:35.536697+00:00",
+  "source": "chat",
+  "session_id": null,
+  "original": {
+    "question": "who are you",
+    "answer": "Hello! I'm **Qwen3.5**, the latest large language model developed by **Tongyi Lab**. I'm designed to assist with a wide range of tasks, including answering questions, writing code, analyzing documents, and much more. How can I help you today? 😊"
+  },
+  "summary": {
+    "atom": "Hello! I'm **Qwen3.5**, the latest large language model developed by **Tongyi Lab**. I'm designed to assist with a wide range of tasks, including answering questions, writing code, analyzing documents, and much more. How can I help you today? 😊",
+    "key_claims": [],
+    "detected_topics": [],
+    "detected_entities": []
+  },
+  "wiki_page": "wiki/concepts/who-are-you.md",
+  "model": "qwen3.5:latest",
+  "tags": [
+    "general"
+  ]
+}
