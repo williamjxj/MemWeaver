@@ -28,6 +28,7 @@ htmlcov/
 .cursor/
 .idea/
 .vscode/
+.worktrees/
 
 # Runtime artifacts
 *.log
