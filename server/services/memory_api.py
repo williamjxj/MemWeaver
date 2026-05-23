@@ -9,6 +9,9 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+import aiosqlite
+import httpx
+
 from server.config import Settings
 from server.models.api import QueryMode
 from server.pipeline.embedder import embed_text
@@ -132,4 +135,70 @@ async def search_wiki(
         "mode": mode.value,
         "total": len(slim_results),
         "results": slim_results,
+    }
+
+
+async def _ollama_reachable(settings: Settings) -> str:
+    try:
+        headers: dict[str, str] = {}
+        if settings.ollama_api_key:
+            headers["Authorization"] = f"Bearer {settings.ollama_api_key}"
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            r = await client.get(
+                f"{settings.ollama_host.rstrip('/')}/api/tags",
+                headers=headers,
+            )
+            r.raise_for_status()
+        return "reachable"
+    except Exception:
+        return "unreachable"
+
+
+async def get_wiki_stats(
+    settings: Settings,
+    queue: asyncio.Queue[IngestJob] | None = None,
+) -> dict[str, Any]:
+    """Aggregate wiki counters plus Ollama reachability and queue depth."""
+    async with aiosqlite.connect(settings.db_path) as db:
+        cur = await db.execute("SELECT COUNT(*) FROM qa_pairs")
+        total_ingests = int((await cur.fetchone())[0])
+        cur = await db.execute("SELECT COUNT(*) FROM pages")
+        total_wiki_pages = int((await cur.fetchone())[0])
+        cur = await db.execute("SELECT MAX(created_at) FROM qa_pairs")
+        row = await cur.fetchone()
+        last_ingest = str(row[0]) if row and row[0] else None
+        cur = await db.execute(
+            """
+            SELECT COUNT(*) FROM pages p
+            WHERE NOT EXISTS (
+                SELECT 1 FROM wiki_links w WHERE w.to_page = p.id
+            )
+            """
+        )
+        orphan_pages = int((await cur.fetchone())[0])
+        cur = await db.execute(
+            """
+            SELECT j.value AS tag, COUNT(*) AS c
+            FROM qa_pairs
+            CROSS JOIN json_each(qa_pairs.tags) AS j
+            WHERE json_valid(qa_pairs.tags)
+            GROUP BY j.value
+            ORDER BY c DESC
+            LIMIT 15
+            """
+        )
+        tag_rows = await cur.fetchall()
+        top_tags: list[list[str | int]] = [[str(r[0]), int(r[1])] for r in tag_rows]
+
+    ollama = await _ollama_reachable(settings)
+    queue_depth = queue.qsize() if queue is not None else 0
+
+    return {
+        "wiki_pages": total_wiki_pages,
+        "qa_pairs": total_ingests,
+        "orphan_pages": orphan_pages,
+        "top_tags": top_tags,
+        "last_ingest": last_ingest,
+        "ollama": ollama,
+        "queue_depth": queue_depth,
     }

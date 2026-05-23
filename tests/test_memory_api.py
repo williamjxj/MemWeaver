@@ -3,6 +3,7 @@
 import asyncio
 from pathlib import Path
 
+import aiosqlite
 import pytest
 
 from server.config import Settings
@@ -168,3 +169,39 @@ async def test_enqueue_ingest_queue_full(isolated_settings: Settings) -> None:
         )
 
     assert exc.value.queue_depth == 1
+
+
+@pytest.mark.asyncio
+async def test_get_wiki_stats(db_settings: Settings, monkeypatch: pytest.MonkeyPatch) -> None:
+    async with aiosqlite.connect(db_settings.db_path) as db:
+        await db.execute(
+            """
+            INSERT INTO pages (id, title, type, path, tags, confidence,
+                               created_at, updated_at, inbound_links, content)
+            VALUES ('p1', 'One', 'concept', 'wiki/concepts/one.md', '[]',
+                    'medium', '2026-01-01', '2026-01-01', 0, 'body')
+            """
+        )
+        await db.execute(
+            """
+            INSERT INTO qa_pairs (id, question, answer, atom, source, session_id,
+                                  tags, created_at)
+            VALUES ('q1', 'Q?', 'A.', 'atom-preview', 'test', NULL, '["tag"]',
+                    '2026-01-02')
+            """
+        )
+        await db.commit()
+
+    async def fake_unreachable(*args: object, **kwargs: object) -> str:
+        """Avoid live Ollama; exercise stats path."""
+        _ = args, kwargs
+        return "unreachable"
+
+    monkeypatch.setattr("server.services.memory_api._ollama_reachable", fake_unreachable)
+
+    stats = await memory_api.get_wiki_stats(db_settings, queue=None)
+
+    assert stats["wiki_pages"] == 1
+    assert stats["qa_pairs"] == 1
+    assert stats["ollama"] == "unreachable"
+    assert stats["queue_depth"] == 0
