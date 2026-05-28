@@ -5,6 +5,7 @@ import { ChatWindow } from "@/components/ChatWindow";
 import { Dashboard, type DashboardView, type HistoryItem, type TreeNode, type SystemEntry, type WikiPage } from "@/components/dashboard/Dashboard";
 import { streamChat, fetchWikiContent } from "@/lib/api";
 import type { ChatDoneData } from "@/lib/api";
+import { useWikiGraph } from "@/lib/use-wiki-graph";
 
 interface Message {
   id: string;
@@ -30,6 +31,14 @@ export default function Home() {
     { label: "SQLite", status: "connected", detail: "247 pages" },
     { label: "Embedder", status: "connected", detail: "nomic-embed-text" },
   ]);
+
+  const {
+    nodes: graphNodes,
+    edges: graphEdges,
+    loading: graphLoading,
+    error: graphError,
+    refresh: onGraphRefresh,
+  } = useWikiGraph();
 
   // Load history from localStorage on mount
   useEffect(() => {
@@ -179,9 +188,14 @@ export default function Home() {
             wikiTree={wikiTree}
             systemStatus={systemStatus}
             selectedPage={selectedPage}
+            graphNodes={graphNodes}
+            graphEdges={graphEdges}
+            graphLoading={graphLoading}
+            graphError={graphError}
             onHistoryRerun={handleHistoryRerun}
             onWikiPageSelect={handleWikiPageSelect}
             onBackToDashboard={handleBackToDashboard}
+            onGraphRefresh={onGraphRefresh}
           />
         </div>
 
@@ -200,9 +214,14 @@ export default function Home() {
                 wikiTree={wikiTree}
                 systemStatus={systemStatus}
                 selectedPage={selectedPage}
+                graphNodes={graphNodes}
+                graphEdges={graphEdges}
+                graphLoading={graphLoading}
+                graphError={graphError}
                 onHistoryRerun={handleHistoryRerun}
                 onWikiPageSelect={handleWikiPageSelect}
                 onBackToDashboard={handleBackToDashboard}
+                onGraphRefresh={onGraphRefresh}
               />
             </div>
           </div>

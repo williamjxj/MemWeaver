@@ -1,10 +1,12 @@
 "use client";
 
 import { ActiveContextWidget } from "./ActiveContextWidget";
+import { GraphWidget } from "./GraphWidget";
 import { HistoryWidget } from "./HistoryWidget";
 import { WikiTreeWidget } from "./WikiTreeWidget";
 import { WikiPagePreview } from "./WikiPagePreview";
 import { SystemStatusWidget } from "./SystemStatusWidget";
+import type { GraphNode, GraphEdge } from "@/lib/use-wiki-graph";
 
 export interface HistoryItem {
   id: string;
@@ -42,9 +44,14 @@ interface DashboardProps {
   wikiTree: TreeNode[];
   systemStatus: SystemEntry[];
   selectedPage: WikiPage | null;
+  graphNodes: GraphNode[];
+  graphEdges: GraphEdge[];
+  graphLoading: boolean;
+  graphError: string | null;
   onHistoryRerun: (query: string) => void;
   onWikiPageSelect: (pageId: string) => void;
   onBackToDashboard: () => void;
+  onGraphRefresh: () => void;
 }
 
 export function Dashboard(props: DashboardProps) {
@@ -62,6 +69,14 @@ export function Dashboard(props: DashboardProps) {
         <ActiveContextWidget pages={props.activeContext} />
         <HistoryWidget items={props.history} onRerun={props.onHistoryRerun} />
         <WikiTreeWidget tree={props.wikiTree} onSelect={props.onWikiPageSelect} />
+        <GraphWidget
+          nodes={props.graphNodes}
+          edges={props.graphEdges}
+          loading={props.graphLoading}
+          error={props.graphError}
+          onNodeClick={props.onWikiPageSelect}
+          onRefresh={props.onGraphRefresh}
+        />
         <SystemStatusWidget entries={props.systemStatus} />
       </div>
     </aside>
