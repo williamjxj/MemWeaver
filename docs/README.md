@@ -6,6 +6,9 @@ This folder contains the project’s design record, release notes, and supportin
 
 - [Architecture Decisions](adr/)
 - [Roadmap](roadmap.md)
+- [Document management strategy](superpowers/plans/2026-05-28-document-management-strategy.md)
+- [Document management ADR](adr/004-document-management-canonicalization.md)
+- [Topics](topics/)
 - [Changelog](../CHANGELOG.md)
 - [Supporting references](references/)
 
