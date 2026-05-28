@@ -23,8 +23,8 @@ export function MessageBubble({
       <div
         className={`max-w-[75%] rounded-lg px-4 py-2 text-sm leading-relaxed ${
           isUser
-            ? "bg-blue-600 text-white"
-            : "prose prose-sm max-w-none bg-gray-100 text-gray-900"
+            ? "bg-primary text-primary-foreground"
+            : "prose prose-sm max-w-none bg-muted text-foreground"
         }`}
       >
         {isUser ? (

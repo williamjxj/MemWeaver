@@ -46,9 +46,39 @@ export function ChatWindow({
 
   return (
     <div className="flex flex-col h-full">
+      <div className="border-b p-4 shrink-0">
+        <div className="flex gap-2">
+          <input
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask anything — wiki memory is injected automatically"
+            disabled={isStreaming}
+            className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+          />
+          {isStreaming ? (
+            <button
+              onClick={onStop}
+              className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg text-sm hover:bg-red-600"
+            >
+              Stop
+            </button>
+          ) : (
+            <button
+              onClick={handleSubmit}
+              disabled={!input.trim()}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
+            >
+              Send
+            </button>
+          )}
+        </div>
+      </div>
+
       <div className="flex-1 overflow-y-auto space-y-3 p-4">
         {messages.length === 0 && !isStreaming && (
-          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+          <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
             Ask anything — wiki memory is injected automatically
           </div>
         )}
@@ -62,42 +92,12 @@ export function ChatWindow({
         ))}
         {isStreaming && !messages.some((m) => m.role === "assistant" && m.content) && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg px-4 py-2 text-sm text-gray-500">
+            <div className="bg-muted rounded-lg px-4 py-2 text-sm text-muted-foreground">
               Thinking...
             </div>
           </div>
         )}
         <div ref={bottomRef} />
-      </div>
-
-      <div className="border-t p-4">
-        <div className="flex gap-2">
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask anything..."
-            disabled={isStreaming}
-            className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-          />
-          {isStreaming ? (
-            <button
-              onClick={onStop}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
-            >
-              Stop
-            </button>
-          ) : (
-            <button
-              onClick={handleSubmit}
-              disabled={!input.trim()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50"
-            >
-              Send
-            </button>
-          )}
-        </div>
       </div>
     </div>
   );
