@@ -16,6 +16,7 @@ from server.config import get_settings
 from server.db.database import init_db
 from server.models.api import (
     ChatRequest,
+    GraphResponse,
     HealthResponse,
     IngestPayload,
     IngestResponse,
@@ -26,7 +27,7 @@ from server.models.api import (
 )
 from server.pipeline.ingest_worker import ingest_worker_loop
 from server.pipeline.query_search import synthesize_answer
-from server.services import memory_api
+from server.services import memory_api, wiki_graph_api
 from server.services.classifier import SKILL_TAXONOMY, classify_topic, classify_with_ollama
 from server.services.memory_api import IngestQueueFullError
 from server.services.public_llm import stream_ollama_chat
@@ -222,6 +223,14 @@ async def chat(req: ChatRequest):
                 logger.exception("failed to enqueue background compilation for chat")
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+@app.get("/wiki/graph", response_model=GraphResponse)
+async def wiki_graph():
+    """Return all wiki pages and their link relationships for the graph view."""
+    cfg = app.state.settings
+    data = await wiki_graph_api.get_wiki_graph(cfg)
+    return GraphResponse(**data)
 
 
 @app.get("/wiki/{slug:path}", response_model=WikiResponse)

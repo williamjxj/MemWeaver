@@ -68,6 +68,29 @@ class WikiResponse(BaseModel):
     content: str
 
 
+class GraphNode(BaseModel):
+    """A single node in the wiki graph."""
+
+    id: str
+    title: str | None = None
+    category: str | None = None
+    inbound_links: int = 0
+
+
+class GraphEdge(BaseModel):
+    """A directed edge between two wiki pages."""
+
+    source: str
+    target: str
+
+
+class GraphResponse(BaseModel):
+    """Response body for GET /wiki/graph."""
+
+    nodes: list[GraphNode] = Field(default_factory=list)
+    edges: list[GraphEdge] = Field(default_factory=list)
+
+
 class StatsResponse(BaseModel):
     """Aggregate counters (s2 §3.4)."""
 
