@@ -1,0 +1,21 @@
+{
+  "ingest_id": "ing_20260528_9c5a4e2b",
+  "received_at": "2026-05-28T16:23:50.143645+00:00",
+  "source": "chat",
+  "session_id": null,
+  "original": {
+    "question": "what is RAG",
+    "answer": "RAG stands for **Retrieval-Augmented Generation**. It's a technique used in artificial intelligence, particularly with large language models (LLMs), to improve the accuracy and relevance of generated responses by combining information retrieval with text generation. Here's a breakdown:\n\n### How RAG Works:\n1. **Retrieval**: When a user asks a question, the system searches an external knowledge base (e.g., documents, databases) to find relevant information.\n2. **Augmentation**: The retrieved data is provided as context to the LLM.\n3. **Generation**: The LLM generates a response using both the query and the retrieved information.\n\n### Key Benefits:\n- **Reduces Hallucinations**: LLMs rely on retrieved facts rather than relying solely on training data, lowering the risk of making up incorrect information.\n- **Up-to-Date Responses**: Allows models to access fresh data (e.g., recent research, news) beyond their static training.\n- **Domain-Specific Accuracy**: Useful in specialized fields like healthcare, law, or enterprise workflows where precise, verified information is critical.\n\n### Example Use Case:\nA customer asks, \"What is the refund policy for my recent purchase?\"  \n- The system retrieves the specific policy from a database of company documents.  \n- The LLM generates a clear, policy-aligned answer instead of guessing or hallucinating.\n\n### Why It Matters:\nRAG bridges the gap between static AI models and dynamic real-world data, making systems more reliable for tasks requiring factual accuracy, domain expertise, or integration with private/internal data.\n\nIf you meant a different context (e.g., medicine or engineering), clarify for a tailored explanation!"
+  },
+  "summary": {
+    "atom": "RAG stands for **Retrieval-Augmented Generation**. It's a technique used in artificial intelligence, particularly with large language models (LLMs), to improve the accuracy and relevance of generated responses by combining information retrieval with text generation. Here's a breakdown: ### How RAG Works: 1. **Retrieval**: When a user asks a question, the system searches an external knowledge base …",
+    "key_claims": [],
+    "detected_topics": [],
+    "detected_entities": []
+  },
+  "wiki_page": "wiki/concepts/what-is-rag.md",
+  "model": "qwen3.5:latest",
+  "tags": [
+    "ml"
+  ]
+}

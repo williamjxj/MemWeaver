@@ -1,6 +1,17 @@
 # LLM-Wiki Middleware Delegator
 
-FastAPI backend + Next.js chat frontend that implements the **s2 ingest pipeline** ([`docs/v2/s2-claude-plan.md`](docs/v2/s2-claude-plan.md)). Ingest Q/A pairs, search via FTS5 + vector embeddings, and chat with wiki-memory augmented LLM — all fully local via Ollama.
+FastAPI backend + Next.js 16 chat frontend + stdio MCP server that implements the **s2 ingest pipeline** ([`docs/v2/s2-claude-plan.md`](docs/v2/s2-claude-plan.md)). Ingest Q/A pairs, search via FTS5 + vector embeddings, and chat with wiki-memory augmented LLM — all fully local via Ollama.
+
+Current release: [v0.1.0](CHANGELOG.md). For release history, see [CHANGELOG.md](CHANGELOG.md), [docs/roadmap.md](docs/roadmap.md), and [docs/adr/](docs/adr/).
+For a single entry point into the docs structure, see [docs/README.md](docs/README.md).
+
+## What’s Included
+
+- `POST /chat` streams answers with wiki context over SSE and compiles the exchange in the background
+- `POST /ingest` queues Q/A pairs for async wiki compilation
+- `GET /query` supports keyword, semantic, and hybrid search modes
+- `GET /wiki/{slug}`, `GET /health`, and `GET /stats` expose wiki content and service status
+- `wiki_search`, `wiki_ingest`, `wiki_get_page`, and `wiki_stats` are available through the MCP server for IDE integrations
 
 ## Architecture
 
@@ -29,6 +40,7 @@ FastAPI backend + Next.js chat frontend that implements the **s2 ingest pipeline
 │  GET  /wiki/{slug} ──► read wiki markdown           │
 │  GET  /health    ──► service status                 │
 │  GET  /stats     ──► aggregate counters             │
+│  MCP stdio       ──► wiki_search / wiki_ingest      │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -91,7 +103,7 @@ Open `http://localhost:3000` in a browser — you'll see a split-pane chat UI.
 
 ## MCP Server (IDE integration)
 
-Expose wiki memory to Cursor, Claude Code, or Opencode as MCP tools — without running the FastAPI server or chat frontend.
+Expose wiki memory to Cursor, Claude Code, or Opencode as MCP tools — without running the FastAPI chat stack.
 
 ### Prerequisites
 

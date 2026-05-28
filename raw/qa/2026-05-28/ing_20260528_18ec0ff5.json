@@ -1,0 +1,21 @@
+{
+  "ingest_id": "ing_20260528_18ec0ff5",
+  "received_at": "2026-05-28T17:17:41.805979+00:00",
+  "source": "chat",
+  "session_id": null,
+  "original": {
+    "question": "Why does the pipeline use RRF for hybrid search?",
+    "answer": "RRF (Reciprocal Rank Fusion) is a popular choice for hybrid search because it effectively combines ranked results from multiple retrieval sources, such as BM25 (keyword-based) and dense vector embeddings (semantic-based). Here's why pipelines commonly use RRF:\n\n### 1. Merges Multiple Ranking Signals\nHybrid search typically retrieves results from different indexes. RRF unifies these into a single ranking by applying a simple, effective formula:\n```\nRRF Score = sum(1/(rank_i + k)) for all sources\n```\nThis allows the system to combine keyword and semantic relevance into one coherent ranking without relying on complex weighting schemes.\n\n### 2. Preserves Relative Importance\nRRF favors items that appear highly ranked across multiple sources. Items ranked in the top positions of any source contribute more to the final score, ensuring that high-quality matches are preserved.\n\n### 3. Robustness to Score Disparities\nDifferent retrieval models often use different scoring scales (e.g., BM25's IDF/Term Frequency vs. embedding similarity). RRF uses rank positions rather than raw scores, making it robust to such differences and avoiding the need to normalize scores.\n\n### 4. Parameter-Free and Efficient\nUnlike ML-based ranking models, RRF does not require retraining, parameter tuning, or retraining when the search corpus or model changes. This simplicity makes it highly scalable and cost-effective.\n\n### 5. Balanced Contribution Across Sources\nRRF ensures that each retrieval source (e.g., keyword, semantic, metadata-based) contributes to the final result without letting one source dominate. This balanced contribution enhances coverage and relevance in diverse queries.\n\n### 6. Empirical Effectiveness\nResearch has shown that RRF often outperforms simpler fusion methods and matches or exceeds more complex models with less effort. It's widely validated in large-scale systems, including those at Microsoft and Meta.\n\n### Example Use Case\nImagine a hybrid search system where:\n- **Source A (BM25)** ranks documents based on keyword match.\n- **Source B (Vector)** ranks documents based on semantic similarity.\n\nIf a document appears in the top 10 of both sources, its RRF score will be high. A document ranked 1st in one source and 50th in another will still receive a decent score, balancing coverage and relevance.\n\n### When Not to Use RRF\nWhile effective, RRF is best suited when:\n- You have multiple independent retrieval sources.\n- You want a lightweight fusion method.\n- You're not willing to invest in training complex models.\n\nIt may not be ideal when you require highly fine-tuned, context-sensitive ranking or have strong signals from only one source.\n\n---\n\n**Summary:** RRF is favored in hybrid search pipelines for its simplicity, efficiency, robustness, and ability to balance multiple ranking signals into a unified, high-quality result list."
+  },
+  "summary": {
+    "atom": "RRF (Reciprocal Rank Fusion) is a popular choice for hybrid search because it effectively combines ranked results from multiple retrieval sources, such as BM25 (keyword-based) and dense vector embeddings (semantic-based). Here's why pipelines commonly use RRF: ### 1. Merges Multiple Ranking Signals Hybrid search typically retrieves results from different indexes. RRF unifies these into a single ra…",
+    "key_claims": [],
+    "detected_topics": [],
+    "detected_entities": []
+  },
+  "wiki_page": "wiki/concepts/why-does-the-pipeline-use-rrf-for-hybrid-search.md",
+  "model": "qwen3.5:latest",
+  "tags": [
+    "general"
+  ]
+}

@@ -14,3 +14,15 @@ Ingest `ing_20260523_0678b38e` → `wiki/concepts/who-are-you.md`
 ## [2026-05-23] ingest | read and analyse the following, and translate into chinese: Here's the f…
 
 Ingest `ing_20260523_a736baf8` → `wiki/concepts/read-and-analyse-the-following-and-translate-into-chinese-heres-.md`
+
+## [2026-05-28] ingest | what is RAG
+
+Ingest `ing_20260528_9c5a4e2b` → `wiki/concepts/what-is-rag.md`
+
+## [2026-05-28] ingest | what is Harness Engineering, does hermes-agent a kind of Harness Enginee…
+
+Ingest `ing_20260528_e2c9798e` → `wiki/concepts/what-is-harness-engineering-does-hermes-agent-a-kind-of-harness-.md`
+
+## [2026-05-28] ingest | Why does the pipeline use RRF for hybrid search?
+
+Ingest `ing_20260528_18ec0ff5` → `wiki/concepts/why-does-the-pipeline-use-rrf-for-hybrid-search.md`
