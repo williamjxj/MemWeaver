@@ -13,8 +13,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Second Brain Chat",
+  title: "MemWeaver",
   description: "Chat with wiki-memory augmented LLM",
+  icons: [
+    { rel: "icon", url: "/favicon.svg", type: "image/svg+xml", sizes: "any" },
+  ],
 };
 
 export default function RootLayout({
