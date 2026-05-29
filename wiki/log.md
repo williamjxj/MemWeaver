@@ -26,3 +26,11 @@ Ingest `ing_20260528_e2c9798e` → `wiki/concepts/what-is-harness-engineering-do
 ## [2026-05-28] ingest | Why does the pipeline use RRF for hybrid search?
 
 Ingest `ing_20260528_18ec0ff5` → `wiki/concepts/why-does-the-pipeline-use-rrf-for-hybrid-search.md`
+
+## [2026-05-28] ingest | what obsidian plugins are helpful for llm-wiki purpose
+
+Ingest `ing_20260528_81c7fe3a` → `wiki/concepts/what-obsidian-plugins-are-helpful-for-llm-wiki-purpose.md`
+
+## [2026-05-29] ingest | what obsidian plugins are helpful for llm-wiki purpose
+
+Ingest `ing_20260529_99daec99` → `wiki/concepts/what-obsidian-plugins-are-helpful-for-llm-wiki-purpose.md`

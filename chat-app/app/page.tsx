@@ -25,6 +25,19 @@ export default function Home() {
   const [dashboardView, setDashboardView] = useState<DashboardView>("dashboard");
   const [selectedPage, setSelectedPage] = useState<WikiPage | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("memweaver-history");
+      if (saved) {
+        const parsed: HistoryItem[] = JSON.parse(saved);
+        setHistory(parsed.map((h) => ({
+          ...h,
+          id: crypto.randomUUID(),
+          timestamp: new Date(h.timestamp),
+        })));
+      }
+    } catch {}
+  }, []);
   const [wikiTree, setWikiTree] = useState<TreeNode[]>([]);
   const [systemStatus, setSystemStatus] = useState<SystemEntry[]>([
     { label: "Ollama", status: "connected" },
@@ -40,16 +53,7 @@ export default function Home() {
     refresh: onGraphRefresh,
   } = useWikiGraph();
 
-  // Load history from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("memweaver-history");
-    if (saved) {
-      try {
-        const parsed: HistoryItem[] = JSON.parse(saved);
-        setHistory(parsed.map((h) => ({ ...h, timestamp: new Date(h.timestamp) })));
-      } catch { /* ignore corrupt data */ }
-    }
-  }, []);
+  // history is initialized from localStorage in the state initializer
 
   // Persist history to localStorage
   useEffect(() => {
@@ -69,7 +73,7 @@ export default function Home() {
     // Add to history
     setHistory((prev) => {
       const item: HistoryItem = {
-        id: String(nextId++),
+        id: crypto.randomUUID(),
         query: question,
         timestamp: new Date(),
       };

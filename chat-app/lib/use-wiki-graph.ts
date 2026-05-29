@@ -46,7 +46,10 @@ export function useWikiGraph(): UseWikiGraphReturn {
   }, []);
 
   useEffect(() => {
-    fetchGraph();
+    const id = setTimeout(() => {
+      void fetchGraph();
+    }, 0);
+    return () => clearTimeout(id);
   }, [fetchGraph]);
 
   return { nodes, edges, loading, error, refresh: fetchGraph };

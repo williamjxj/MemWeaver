@@ -73,8 +73,6 @@ async def ollama_generate(
         "prompt": prompt,
         "stream": False,
     }
-    if json_mode:
-        body["format"] = "json"
 
     headers = _auth_headers(api_key)
 
