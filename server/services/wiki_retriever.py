@@ -7,7 +7,7 @@ from server.config import Settings
 
 logger = logging.getLogger(__name__)
 
-MAX_SUMMARY_CHARS = 3000  # injection cap for public LLM context
+MAX_SUMMARY_CHARS = 1000  # injection cap for public LLM context (reduced to speed prompts)
 
 
 def _load_index(wiki_dir: Path) -> list[dict]:

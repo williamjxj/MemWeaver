@@ -1,11 +1,18 @@
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-const CHAT_API = "/api/chat";
+const CHAT_API = `${API_BASE}/chat`;
 
 export interface ChatDoneData {
   wiki_slug: string | null;
   topic: string;
   context_chars: number;
+}
+
+export interface WikiTreeNode {
+  id: string;
+  label: string;
+  type: "folder" | "page";
+  children?: WikiTreeNode[];
 }
 
 export interface StreamCallbacks {
@@ -82,4 +89,11 @@ export async function fetchWikiContent(slug: string): Promise<string> {
   if (!res.ok) return "";
   const data = await res.json();
   return data.content ?? "";
+}
+
+export async function fetchWikiTree(): Promise<WikiTreeNode[]> {
+  const res = await fetch(`${API_BASE}/wiki/tree`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.tree ?? [];
 }

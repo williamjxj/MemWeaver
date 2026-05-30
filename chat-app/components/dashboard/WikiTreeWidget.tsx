@@ -19,7 +19,9 @@ export function WikiTreeWidget({ tree, onSelect }: WikiTreeWidgetProps) {
   return (
     <Widget title="Wiki Tree" icon="🌳">
       {tree.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No wiki pages.</p>
+        <p className="text-xs text-muted-foreground">
+          The wiki tree is the catalog of compiled pages, grouped by sections from the wiki index.
+        </p>
       ) : (
         <WikiTreeNodes nodes={tree} depth={0} onSelect={onSelect} />
       )}
@@ -36,7 +38,9 @@ function WikiTreeNodes({
   depth: number;
   onSelect: (id: string) => void;
 }) {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(
+    () => new Set(depth === 0 ? nodes.filter((node) => node.type === "folder").map((node) => node.id) : []),
+  );
 
   function toggle(id: string) {
     setExpanded((prev) => {

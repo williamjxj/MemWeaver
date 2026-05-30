@@ -52,10 +52,13 @@ async def run_ingest_pipeline(job: IngestJob, settings: Settings) -> None:
     now_iso = datetime.now(timezone.utc).isoformat()
 
     try:
+        # Trim the answer fed into the summarizer to a single-line excerpt to
+        # reduce prompt size and speed up model response times.
+        short_answer = one_line(job.answer, 400)
         summary = await ollama_generate_json(
             settings.ollama_host,
             settings.ollama_model,
-            SUMMARIZE_PROMPT.format(question=job.question, answer=job.answer),
+            SUMMARIZE_PROMPT.format(question=job.question, answer=short_answer),
             timeout=settings.ollama_timeout,
             api_key=settings.ollama_api_key,
         )

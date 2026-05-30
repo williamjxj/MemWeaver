@@ -2,10 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { ChatWindow } from "@/components/ChatWindow";
-import { Dashboard, type DashboardView, type HistoryItem, type TreeNode, type SystemEntry, type WikiPage } from "@/components/dashboard/Dashboard";
-import { streamChat, fetchWikiContent } from "@/lib/api";
-import type { ChatDoneData } from "@/lib/api";
-import { useWikiGraph } from "@/lib/use-wiki-graph";
+import { Dashboard, type ActiveContextItem, type DashboardView, type HistoryItem, type TreeNode, type SystemEntry, type WikiPage } from "@/components/dashboard/Dashboard";
+import { streamChat, fetchWikiContent, fetchWikiTree, type ChatDoneData, type WikiTreeNode } from "@/lib/api";
 
 interface Message {
   id: string;
@@ -18,6 +16,7 @@ let nextId = 1;
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const [activeContext, setActiveContext] = useState<ActiveContextItem[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,20 +37,24 @@ export default function Home() {
       }
     } catch {}
   }, []);
-  const [wikiTree, setWikiTree] = useState<TreeNode[]>([]);
+  const [wikiTree, setWikiTree] = useState<WikiTreeNode[]>([]);
   const [systemStatus, setSystemStatus] = useState<SystemEntry[]>([
     { label: "Ollama", status: "connected" },
     { label: "SQLite", status: "connected", detail: "247 pages" },
     { label: "Embedder", status: "connected", detail: "nomic-embed-text" },
   ]);
 
-  const {
-    nodes: graphNodes,
-    edges: graphEdges,
-    loading: graphLoading,
-    error: graphError,
-    refresh: onGraphRefresh,
-  } = useWikiGraph();
+  function extractWikiTitle(content: string, fallbackSlug: string): string {
+    const frontmatterMatch = content.match(/title:\s*"?([^"\n]+)"?/i);
+    if (frontmatterMatch?.[1]) {
+      return frontmatterMatch[1].trim();
+    }
+    const headingMatch = content.match(/^#\s+(.+)$/m);
+    if (headingMatch?.[1]) {
+      return headingMatch[1].trim();
+    }
+    return fallbackSlug.replace(/-/g, " ").trim().replace(/\b\w/g, (char) => char.toUpperCase());
+  }
 
   // history is initialized from localStorage in the state initializer
 
@@ -61,6 +64,49 @@ export default function Home() {
       localStorage.setItem("memweaver-history", JSON.stringify(history));
     }
   }, [history]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadWikiTree() {
+      const tree = await fetchWikiTree();
+      if (!cancelled) {
+        setWikiTree(tree);
+      }
+    }
+    void loadWikiTree();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadActiveContext() {
+      if (!activeSlug) {
+        setActiveContext([]);
+        return;
+      }
+
+      const content = await fetchWikiContent(activeSlug);
+      const title = content ? extractWikiTitle(content, activeSlug) : activeSlug.replace(/-/g, " ");
+
+      if (!cancelled) {
+        setActiveContext([
+          {
+            id: activeSlug,
+            label: title,
+            detail: "Current wiki page used for the latest answer",
+          },
+        ]);
+      }
+    }
+
+    void loadActiveContext();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSlug]);
 
   async function handleSend(question: string) {
     setError(null);
@@ -187,19 +233,14 @@ export default function Home() {
         <div className="hidden lg:block">
           <Dashboard
             view={dashboardView}
-            activeContext={activeSlug ? [activeSlug] : []}
+            activeContext={activeContext}
             history={history}
             wikiTree={wikiTree}
             systemStatus={systemStatus}
             selectedPage={selectedPage}
-            graphNodes={graphNodes}
-            graphEdges={graphEdges}
-            graphLoading={graphLoading}
-            graphError={graphError}
             onHistoryRerun={handleHistoryRerun}
             onWikiPageSelect={handleWikiPageSelect}
             onBackToDashboard={handleBackToDashboard}
-            onGraphRefresh={onGraphRefresh}
           />
         </div>
 
@@ -213,19 +254,14 @@ export default function Home() {
             <div className="absolute right-0 top-0 h-full">
               <Dashboard
                 view={dashboardView}
-                activeContext={activeSlug ? [activeSlug] : []}
+                activeContext={activeContext}
                 history={history}
                 wikiTree={wikiTree}
                 systemStatus={systemStatus}
                 selectedPage={selectedPage}
-                graphNodes={graphNodes}
-                graphEdges={graphEdges}
-                graphLoading={graphLoading}
-                graphError={graphError}
                 onHistoryRerun={handleHistoryRerun}
                 onWikiPageSelect={handleWikiPageSelect}
                 onBackToDashboard={handleBackToDashboard}
-                onGraphRefresh={onGraphRefresh}
               />
             </div>
           </div>

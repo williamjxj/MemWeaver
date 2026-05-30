@@ -1,0 +1,36 @@
+{
+  "ingest_id": "ing_20260530_bb57302c",
+  "received_at": "2026-05-30T05:30:47.662995+00:00",
+  "source": "chat",
+  "session_id": null,
+  "original": {
+    "question": "text2mem, mem0, crew.ai",
+    "answer": "It seems like you've mentioned some terms or names that could be related to different concepts or technologies. Let's break them down:\n\n1. **Text2Mem**: This term isn't widely recognized in the context of common technology or software. It might refer to a specific product or service, possibly related to text processing or memory management, but without more context, it's hard to provide accurate information.\n\n2. **mem0**: This could be a placeholder name or variable used in programming or data storage contexts. The \"0\" at the end suggests it might represent an initial state or value (e.g., `mem0` as the first memory allocation).\n\n3. **Crew.ai**: Crew.ai is a company that focuses on artificial intelligence solutions, particularly for customer service and chatbots. They provide tools to help businesses automate their customer interactions.\n\nIf you have specific questions about any of these terms or need more information, please provide additional context so I can assist you better!"
+  },
+  "summary": {
+    "atom": "text2mem, mem0, and crew.ai are mentioned as potentially distinct terms or technologies.",
+    "key_claims": [
+      "text2mem is a term",
+      "mem0 is a term",
+      "crew.ai is a name"
+    ],
+    "detected_topics": [
+      "term",
+      "technology",
+      "product-name"
+    ],
+    "detected_entities": [
+      "text2mem",
+      "mem0",
+      "crew.ai"
+    ]
+  },
+  "wiki_page": "wiki/concepts/term.md",
+  "model": "qwen2.5:7b-instruct",
+  "tags": [
+    "general",
+    "term",
+    "technology",
+    "product-name"
+  ]
+}

@@ -42,6 +42,10 @@ async def stream_ollama_chat(
         "model": settings.ollama_model,
         "prompt": full_prompt,
         "stream": True,
+        "options": {
+            "temperature": 0.2,
+            "num_predict": 256,
+        },
     }
 
     headers = {}

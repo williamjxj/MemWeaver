@@ -34,3 +34,23 @@ Ingest `ing_20260528_81c7fe3a` → `wiki/concepts/what-obsidian-plugins-are-help
 ## [2026-05-29] ingest | what obsidian plugins are helpful for llm-wiki purpose
 
 Ingest `ing_20260529_99daec99` → `wiki/concepts/what-obsidian-plugins-are-helpful-for-llm-wiki-purpose.md`
+
+## [2026-05-30] ingest | mem0 vs teamMem
+
+Ingest `ing_20260530_af673349` → `wiki/concepts/mem0-vs-teammem.md`
+
+## [2026-05-30] ingest | text2mem, mem0, memweaver
+
+Ingest `ing_20260530_2175f365` → `wiki/concepts/memory-management.md`
+
+## [2026-05-30] ingest | how vector DB works with llm-wiki
+
+Ingest `ing_20260530_2a82c7cf` → `wiki/concepts/vector-databases.md`
+
+## [2026-05-30] ingest | text2mem, mem0, crew.ai
+
+Ingest `ing_20260530_bb57302c` → `wiki/concepts/term.md`
+
+## [2026-05-30] ingest | text2mem, mem0, memweaver
+
+Ingest `ing_20260530_df6b677e` → `wiki/concepts/memory-management.md`

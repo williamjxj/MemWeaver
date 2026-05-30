@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # Env: OLLAMA_HOST, OLLAMA_MODEL, OLLAMA_TIMEOUT, WIKI_DIR, RAW_DIR, DB_PATH, ...
     ollama_host: str = Field(default="http://127.0.0.1:11434")
-    ollama_model: str = Field(default="qwen3.5:latest")
+    ollama_model: str = Field(default="qwen2.5:7b-instruct")
     ollama_timeout: float = Field(default=120.0)
     ollama_api_key: str = Field(default="")
 
@@ -25,6 +25,7 @@ class Settings(BaseSettings):
 
     max_queue_size: int = Field(default=100)
     max_atom_sentences: int = Field(default=3)
+    enable_contradiction_check: bool = Field(default=False)
 
     model_config = SettingsConfigDict(
         env_file=".env",

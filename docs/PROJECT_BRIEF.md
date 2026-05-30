@@ -1,115 +1,106 @@
 ---
 type: project-brief
-status: draft
-date: 2026-05-24
-export_cycle: 1
-sources_ingested: 22
+status: current
+date: 2026-05-29
+export_cycle: 2
+sources_ingested: 28
 ---
 
 # Project Brief: mem-weaver
 
-## Docs
-
-- [Docs home](README.md)
-- [Roadmap](roadmap.md)
-- [Changelog](../CHANGELOG.md)
-- [Architecture Decisions](adr/)
-
-> Export cycle 1 · 22 sources ingested · Draft — review before promoting to `current`
+> Export cycle 2 · 28 sources ingested (27 LLM + 1 web) · 27 concept pages · Synced from wiki/synthesis/project-brief.md
 
 ## Problem
 
-LLM chat is stateless: every turn either replays noisy raw history (token bloat, "lost in the middle") or starts fresh (no compounding knowledge). Web UIs auto-accumulate full transcripts with no control over context. A developer building a personal "second brain" on a MacBook Pro needs:
+LLM chat is stateless: every turn either replays noisy raw history (token bloat, "lost in the middle") or starts fresh (no compounding knowledge). Developers building a "second brain" on a MacBook Pro need:
 
 - **Persistent memory** that compiles over time, not a growing chat log
 - **Local privacy** for raw Q+A, with optional cloud reasoning
 - **Human-readable storage** (Markdown wiki) editable in Obsidian
 - **Agent integration** so coding tools (Cursor, MCP clients) can read/write project memory mid-session
 
-mem-weaver addresses this with a **dual-LLM memory pipeline**: local Ollama compiles conversations into a wiki; retrieval injects distilled summaries into answers instead of raw turns. See [[dual-llm-memory-pipeline]] and [[memory-synthesis-vs-rag]].
+mem-weaver addresses this with a **dual-LLM memory pipeline**: local Ollama compiles conversations into a wiki; retrieval injects distilled summaries into answers instead of raw turns.
 
 ## Current Understanding
 
-**mem-weaver** is a local-first dual-LLM system inspired by Karpathy's LLM-wiki and Agent Skills taxonomy ([[agent-skills-taxonomy]]):
+### Core loop
 
-1. **Phase A (sync):** classify question → retrieve compiled wiki summary → LLM answers with summary as context
+1. **Phase A (sync):** classify question → retrieve compiled wiki summary → LLM answers with summary as context (not raw history)
 2. **Phase B (async):** Ollama incrementally merges Q+A into wiki pages after the user gets an answer
 
-**Architecture** ([[mem-weaver-architecture]]): FastAPI middleware delegator, SQLite + FTS5 + sqlite-vec hybrid search (RRF), Obsidian-compatible Markdown vault, shared `memory_api` layer.
+Follows **synthesis-first compilation** plus hybrid retrieval (FTS5 + sqlite-vec + RRF) at query time.
 
-**As-built status** ([[mem-weaver-as-built-status]]): Codebase audit (2026-05-24) confirms Milestones A/B, Phase 4 hardening, hybrid search, `POST /chat` (SSE), and MCP server are **implemented**. Remaining wiring gaps: value gate, `_index.md` format alignment, optional hosted cloud LLM client.
+### Architecture
 
-**Known gaps** ([[mem-weaver-known-gaps]]): no episodic/semantic/procedural taxonomy, flat wikilink graph, no temporal validity on facts, no multi-tenant scoping. The chat frontend is now shipped; the remaining frontend work is polish and alignment with the wiki index flow.
+- **FastAPI middleware delegator:** `POST /ingest` (202 async), `GET /query` (FTS5 BM25), `POST /chat` (SSE), MCP stdio — **all implemented**
+- **Storage triad:** SQLite (pages, qa_pairs, FTS5) + Markdown vault (Obsidian-compatible) + sqlite-vec embeddings
+- **Entry points:** Next.js chat UI (designed) and MCP server (implemented) share `memory_api`
+- **Epistemic foundation:** LLM outputs are synthetic first-pass knowledge — wiki distillation is where verified signal emerges
 
-**Release docs**: [CHANGELOG.md](../CHANGELOG.md), [docs/roadmap.md](roadmap.md), [docs/adr/](adr/)
+### As-built status
+
+| Capability | Status |
+|------------|--------|
+| Milestone A (FastAPI skeleton) | **Done** |
+| Milestone B (typed models) | **Done** |
+| Phase 4 hardening (contradictions, DLQ, tests) | **Done** |
+| Hybrid search (FTS5 + sqlite-vec + RRF) | **Done** |
+| POST /chat (SSE) | **Done** |
+| MCP server (stdio FastMCP, 4 tools) | **Done** |
+| Value gate (SKIP/PROCESS in ingest) | **Missing** |
+| `_index.md` vs `wiki/index.md` alignment | **Partial** |
+| Cloud LLM client (Anthropic/OpenAI) | **Partial** (Ollama only) |
+
+### Research workflow
+
+Three independent LLMs converge on a unified workflow: **Collect → Ingest → Synthesize → Export → Apply → Closed Loop**. The wiki is the intermediate layer between multi-LLM research and implementation. Core concepts:
+- **Context fragmentation** is the root problem; **context compression** (10k pages → 2 pages → prompts) is the moat
+- **Multi-pass distillation:** raw → clustered → summarized → canonicalized → implementation-oriented
+- **Contradictions tracking** is where multi-LLM input earns its keep
+- **Human review gate** is non-negotiable between wiki and implementation
 
 ## Chosen Approach
 
 ### Firm decisions
+- **Memory model:** Synthesis-first wiki compilation + hybrid retrieval
+- **Pipeline:** Dual-LLM (Ollama compiler async + LLM reasoner with wiki context)
+- **Storage:** SQLite + Markdown vault + sqlite-vec (NotebookLM validates SQLite+FTS5 over ChromaDB)
+- **Entry points:** MCP (done) + Next.js chat (designed) share service layer
+- **LLM source framing:** Synthetic first-pass signal, not ground truth
+- **Knowledge compound:** Wiki is a compounding asset, not ephemeral RAG
+- **Naming:** LLM-Wiki (2:1 over "context engine")
+- **MVP scope:** Markdown + git; Obsidian as viewer; no custom app UI
+- **Human gate:** Required between wiki distillation and dev context export
 
-| Area | Choice | Wiki depth |
-|------|--------|------------|
-| Memory model | Synthesis-first wiki compilation + hybrid retrieval (FTS5 + sqlite-vec + RRF) | [[memory-synthesis-vs-rag]] |
-| Pipeline shape | Dual-LLM: Ollama compiler (Phase B async) + LLM reasoner with wiki context (Phase A sync) | [[dual-llm-memory-pipeline]] |
-| Ingest trigger | Per-turn async ingest on every Q+A (as built today) | [[dual-llm-memory-pipeline]] |
-| Storage | SQLite index + Markdown vault + embeddings | [[mem-weaver-architecture]] |
-| Topic routing | `SKILL_TAXONOMY` in classifier code (done) | [[agent-skills-taxonomy]] |
-| IDE integration | stdio MCP server sharing `memory_api` with HTTP routes (done) | [[implementation-milestones]] |
-| Wiki editing | Obsidian over `wiki/` — don't rebuild markdown admin | [[claude-frontend-admin-integration]] |
-
-### Tentative / leaning
-
-| Area | Lean | Notes |
-|------|------|-------|
-| Product positioning | OSS, local-first solo dev tool | Skip VC memory-startup path per [[claude-mem-weaver-competitive-analysis]] |
-| Next UI priority | Either Next.js chat UI **or** MCP polish — both backends exist | See [[implementation-milestones]] divergence |
-| Cloud LLM | Keep Ollama-only in `public_llm.py` until product requires Anthropic/OpenAI | [[mem-weaver-as-built-status]] |
-
-### Next build (cross-cutting)
-
-1. **Value gate** (`SKIP`/`PROCESS`) before summarize — [[mem-weaver-known-gaps]]
-2. **Unify index format** — ingest writes `wiki/index.md`; chat retriever expects `_index.md` pipe-table — [[agent-skills-taxonomy]]
-3. **Next.js chat frontend** — backend `/chat` exists; UI per [[claude-chat-app-frontend-design]]
+### Open decisions
+- Index format: unify `_index.md` vs `wiki/index.md`
+- Value gate: add SKIP/PROCESS before summarization
+- Cloud LLM client: add Anthropic/OpenAI or keep Ollama-only
+- Purpose steering: add `purpose.md` to prevent knowledge drift
+- Decision records: adopt structured format with source attribution
 
 ## Constraints
-
-- **Local-first / MacBook Pro:** Ollama runs locally; RAM limits model size for compiler role
-- **API-based context control:** memory architecture depends on programmatic prompt assembly, not web chat auto-history ([[chatgpt-api-token-context-management]])
-- **Single-user scope (today):** no auth, multi-tenant scoping, or enterprise compliance path
-- **Summary quality bounded by local model:** Ollama compiler quality affects wiki fidelity; contradiction guardrails exist but value gate does not
-- **Human-readable wiki:** Markdown vault is a product requirement — not a pure vector DB
+- Single-user MacBook Pro — no multi-tenant or cloud scaling
+- Ollama-only for local compilation
+- The wiki is the pipeline — AGENTS.md schema governs format
+- No vector DB dependency — SQLite + FTS5 + sqlite-vec is sufficient
 
 ## Non-Goals
-
-- **VC-backed memory SaaS** competing with Mem0, Zep, Letta — positioning is personal/dev tool ([[claude-mem-weaver-competitive-analysis]])
-- **Pure RAG without synthesis** — raw chunk retrieval alone rejected; compile-then-search hybrid chosen
-- **Rebuilding Obsidian** for wiki browse/edit — use vault + plugins
-- **Enterprise multi-tenant memory** in v1 — no auth/scoping API yet
-- **Typed knowledge graph** in v1 — flat wikilinks only; graph layer is future ([[mem-weaver-known-gaps]])
-- **Replacing parent project-wiki submodule** — this wiki tracks mem-weaver research; mem-weaver app code lives separately
+- Multi-tenant memory scoping
+- SaaS product / startup
+- Typed entity-relationship knowledge graph (flat wikilinks)
+- Temporal validity tracking
+- Episodic/semantic/procedural memory taxonomy
 
 ## Rejected Alternatives
-
-| Alternative | Why rejected | Source divergence |
-|-------------|--------------|-------------------|
-| Raw chat history replay to cloud LLM | Noisy, expensive, degrades with length | [[chatgpt-retrieval-vs-synthesis]] vs [[dual-llm-memory-pipeline]] |
-| Vector/RAG-only memory (no wiki compile) | Misses compounding synthesis; context bloat on raw chunks | [[memory-synthesis-vs-rag]] |
-| Batch-only wiki updates (3–5 turns) | Higher latency to fresh memory; per-turn async shipped first | [[claude-dual-llm-memory-pipeline]] vs as-built |
-| ChromaDB / Neo4j as primary store | Codebase uses sqlite-vec + SQLite; simpler local stack | [[gemini-second-brain-design]] vs [[mem-weaver-architecture]] |
-| MCP-only, no HTTP/chat paths | Both entry points valid; HTTP + MCP share `memory_api` | [[claude-mcp-server-design]] vs [[chatgpt-mem-weaver-v2-roadmap]] |
-| Dynamic Ollama-invented topic categories (v1) | Harder to debug; fixed `SKILL_TAXONOMY` wired first | [[dual-llm-memory-pipeline]] divergence table |
-| Hosted "public LLM" as default reasoner (today) | `public_llm.py` is Ollama-only; local-first preserved | [[mem-weaver-as-built-status]] |
-| Custom Next.js markdown admin | Obsidian sufficient for editorial UX | [[claude-frontend-admin-integration]] |
+- Pure RAG (no wiki compile) — no persistent synthesis
+- ChromaDB / external vector DB — unnecessary overhead for single-user
+- Custom React app as primary UI — Obsidian + CLI sufficient for MVP
+- "Context Engine" naming — 2:1 consensus for LLM-Wiki
+- Open WebUI Pipelines — built dedicated FastAPI operator instead
 
 ## Open Questions
-
-1. **Index format:** Teach ingest to write `_index.md` pipe-table, or retarget chat retriever to `wiki/index.md` + hybrid search? ([[agent-skills-taxonomy]])
-2. **Entry point priority:** Ship Next.js chat UI next, or polish MCP/Cursor config for coding workflow? ([[implementation-milestones]])
-3. **Cloud LLM:** Add Anthropic/OpenAI to `public_llm.py`, or stay Ollama-only? ([[mem-weaver-as-built-status]])
-4. **Scale:** Is sqlite-vec sufficient long-term, or migrate to ChromaDB at vault size? ([[gemini-second-brain-design]])
-5. **Memory taxonomy:** When to add episodic / semantic / procedural separation? ([[mem-weaver-known-gaps]])
-6. **Product scope:** Remain solo dev + Obsidian tool, or expand toward SaaS (auth, scoping)? ([[claude-mem-weaver-competitive-analysis]])
-
----
-
-For source attribution and evolving synthesis, drill into `wiki/concepts/` and [[evolving-thesis]]. Research continues — this brief is cycle 1 of an ongoing loop.
+1. Entry point priority: Next.js chat UI next, or MCP polish for IDE workflow?
+2. Automation pace: pipeline operator or stay manual?
+3. Knowledge governance: implement confidence / supersession / review queue before hallucination write-back becomes critical?
+4. Cloud LLM: add hosted Anthropic/OpenAI or keep local-first?

@@ -27,7 +27,7 @@ from server.models.api import (
 )
 from server.pipeline.ingest_worker import ingest_worker_loop
 from server.pipeline.query_search import synthesize_answer
-from server.services import memory_api, wiki_graph_api
+from server.services import memory_api, wiki_graph_api, wiki_tree_api
 from server.services.classifier import SKILL_TAXONOMY, classify_topic, classify_with_ollama
 from server.services.memory_api import IngestQueueFullError
 from server.services.public_llm import stream_ollama_chat
@@ -231,6 +231,13 @@ async def wiki_graph():
     cfg = app.state.settings
     data = await wiki_graph_api.get_wiki_graph(cfg)
     return GraphResponse(**data)
+
+
+@app.get("/wiki/tree")
+async def wiki_tree():
+    """Return a sidebar-friendly wiki catalog built from wiki/index.md."""
+    cfg = app.state.settings
+    return await wiki_tree_api.get_wiki_tree(cfg)
 
 
 @app.get("/wiki/{slug:path}", response_model=WikiResponse)

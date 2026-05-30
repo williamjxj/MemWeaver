@@ -1,0 +1,29 @@
+{
+  "ingest_id": "ing_20260530_2a82c7cf",
+  "received_at": "2026-05-30T05:19:08.170057+00:00",
+  "source": "chat",
+  "session_id": null,
+  "original": {
+    "question": "how vector DB works with llm-wiki",
+    "answer": "Vector databases (or vector stores) play a crucial role in integrating large language models (LLMs) like those used in LLM-Wiki projects. Here’s how they work together:\n\n### 1. **Understanding Vector Databases:**\n   - A vector database is designed to store and query vectors, which are numerical representations of text or other data.\n   - These vectors are generated using techniques such as word embeddings (e.g., Word2Vec, GloVe) or more advanced models like BERT, which can capture the semantic meaning of words and phrases.\n\n### 2. **LLM-Wiki Integration:**\n   - In an LLM-Wiki project, a vector database is often used to store and index the vectors generated from the content of Wikipedia articles.\n   - This allows for efficient retrieval of relevant information based on similarity in text or context.\n\n### 3. **Vector Generation:**\n   - The first step involves generating vectors for each piece of text (e.g., paragraphs, sentences) in the Wikipedia articles.\n   - These vectors are then stored in the vector database.\n\n### 4. **Query Processing:**\n   - When a user asks a question or provides some input to an LLM-Wiki system, the query is also converted into a"
+  },
+  "summary": {
+    "atom": "Vector databases store and query vectors for efficient retrieval in large language model applications.",
+    "key_claims": [
+      "vector databases store and query vectors",
+      "vectors enable efficient retrieval in LLM applications"
+    ],
+    "detected_topics": [
+      "vector-databases",
+      "llm-applications"
+    ],
+    "detected_entities": []
+  },
+  "wiki_page": "wiki/concepts/vector-databases.md",
+  "model": "qwen2.5:7b-instruct",
+  "tags": [
+    "ml",
+    "vector-databases",
+    "llm-applications"
+  ]
+}
