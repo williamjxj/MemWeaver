@@ -1,0 +1,79 @@
+# MemWeaver — LLM memory pipeline
+
+## Overview
+
+FastAPI backend + Next.js 16 chat frontend + stdio MCP server implementing a dual-LLM memory pipeline. Ingest Q/A pairs, search via FTS5 + vector embeddings, and chat with wiki-memory augmented LLM.
+
+- **Public chat**: DeepSeek (SSE streaming) with wiki context injection
+- **Ingest pipeline**: Ollama-powered distillation, wiki compilation, FTS5 indexing, semantic embeddings
+- **Search**: Keyword (FTS5 BM25), semantic (sqlite-vec cosine), hybrid (Reciprocal Rank Fusion)
+- **MCP server**: IDE integration (Cursor/Claude Code/OpenCode) with `wiki_search`, `wiki_ingest`, `wiki_get_page`, `wiki_stats` tools
+
+## Key features since v0.1.0
+
+- Two-tier LLM architecture (DeepSeek for chat, Ollama for pipeline)
+- Opt-in save-to-memory (chat turns no longer auto-compile)
+- Wiki graph endpoint (`GET /wiki/graph`) + D3 force-directed graph widget
+- Wiki tree endpoint (`GET /wiki/tree`) for sidebar catalog
+- Dashboard UI with three-stage compare view (QA / RAG / LLM-Wiki)
+- Wiki sidebar speed improvements
+- Sage Garden theme with SVG logo + favicon
+
+## Tech stack
+
+- **Backend**: Python 3.12, FastAPI, aiosqlite, sqlite-vec, httpx, pydantic-settings
+- **Frontend**: Next.js 16 (App Router), Tailwind CSS 4, shadcn/ui, react-markdown, D3.js
+- **LLM**: DeepSeek (chat), Ollama (pipeline: `qwen2.5:7b-instruct`, `nomic-embed-text`)
+- **Storage**: SQLite + FTS5 + sqlite-vec (vector), markdown vault under `wiki/`
+- **IDE integration**: stdio MCP server via `server/mcp_server.py`
+
+## Project structure
+
+```
+server/main.py           — FastAPI routes: /ingest, /chat, /query, /wiki/*, /health, /stats
+server/mcp_server.py     — Stdio MCP server entrypoint
+server/models/api.py     — Pydantic schemas (IngestPayload, QueryMode, GraphResponse, etc.)
+server/config/settings.py— pydantic-settings (Ollama, DeepSeek, paths)
+server/db/               — SQLite init, FTS5 migrations, sqlite-vec extension
+server/pipeline/         — Ingest worker, embedder, hybrid search, semantic search
+server/services/         — deepseek_client, public_llm, classifier, memory_api, wiki_graph_api, wiki_tree_api, wiki_retriever
+chat-app/                — Next.js 16 frontend
+  app/page.tsx           — Three-stage dashboard (compare/qa/rag/wiki)
+  app/api/chat/route.ts  — SSE proxy to FastAPI
+  components/            — ModeChatPanel, SaveToMemory, dashboard/ widgets, ui/
+wiki/                    — LLM-wiki markdown vault (index, concepts, log)
+raw/                     — Immutable Q/A JSON artifacts
+tests/                   — 17 pytest test files
+docs/                    — ADRs, specs, plans, roadmap, changelog
+```
+
+## API endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/chat` | Streaming chat via DeepSeek with wiki context (opt-in save) |
+| POST | `/ingest` | Enqueue Q/A for async Ollama compilation |
+| GET | `/query` | Keyword / semantic / hybrid search |
+| GET | `/wiki/{slug}` | Fetch wiki page by slug |
+| GET | `/wiki/graph` | Wiki pages as nodes + wikilink edges |
+| GET | `/wiki/tree` | Sidebar catalog from wiki/index.md |
+| GET | `/health` | Service health + Ollama reachability + DB status |
+| GET | `/stats` | Aggregate counters |
+
+## Quick start
+
+```bash
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # set DEEPSEEK_API_KEY
+uvicorn server.main:app --reload     # terminal 1
+cd chat-app && pnpm dev              # terminal 2
+```
+
+Requires: Python 3.12+, Node.js 20+, pnpm, Ollama running locally.
+
+## Tests
+
+```bash
+./venv/bin/pytest tests/ -v
+```

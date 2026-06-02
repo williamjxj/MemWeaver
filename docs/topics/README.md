@@ -1,11 +1,9 @@
 # Topics
 
-This folder holds canonical topic notes for MemWeaver.
-
-Use these notes for stable, project-specific summaries that are more durable than working specs or multi-version LLM drafts.
+Canonical topic summaries for MemWeaver. These notes are stable, project-specific summaries — more durable than working specs or multi-version LLM drafts in the [research](../research/) directory.
 
 ## Current Notes
 
-- [Document management](document-management.md)
-- [Chat + memory workflow](chat-memory-workflow.md)
-- [Ingest + retrieval pipeline](ingest-retrieval-pipeline.md)
+- [Document management](document-management.md) — How docs are organized and maintained
+- [Chat + memory workflow](chat-memory-workflow.md) — Core two-speed chat/memory loop
+- [Ingest + retrieval pipeline](ingest-retrieval-pipeline.md) — How the pipeline works end-to-end

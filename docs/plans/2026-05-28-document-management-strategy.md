@@ -10,12 +10,12 @@
 
 MemWeaver already has multiple document streams that describe the same product from different angles:
 
-- `docs/v1/` — earlier LLM-generated perspectives
-- `docs/v2/` — revised perspectives with a stronger implementation focus
-- `docs/v3/` — newer model outputs and follow-up drafts
+- `docs/research/v1/` — earlier LLM-generated perspectives
+- `docs/research/v2/` — revised perspectives with a stronger implementation focus
+- `docs/research/v3/` — newer model outputs and follow-up drafts
 - `docs/adr/` — durable architectural decisions
 - `docs/roadmap.md` — milestone-level direction
-- `docs/superpowers/specs/` and `docs/superpowers/plans/` — working specs and execution plans
+- `docs/specs/` and `docs/plans/` — working specs and execution plans
 
 The goal is to turn these into a repeatable document pipeline that behaves like a lightweight LLM-wiki composition system: compare similar docs, extract durable ideas, refine conflicts, merge into canonical summaries, and index everything so later prompts can retrieve the best source quickly.
 
@@ -39,7 +39,7 @@ This keeps the source drafts intact while gradually improving the docs that matt
 
 ### 1. Draft Sources
 
-Keep `docs/v1/`, `docs/v2/`, and `docs/v3/` as immutable input collections.
+Keep `docs/research/v1/`, `docs/research/v2/`, and `docs/research/v3/` as immutable input collections.
 
 Rules:
 
@@ -58,7 +58,7 @@ Create or maintain a small canonical layer for durable knowledge:
 
 ### 3. Working Docs
 
-Use `docs/superpowers/specs/` and `docs/superpowers/plans/` for short-lived execution artifacts.
+Use `docs/specs/` and `docs/plans/` for short-lived execution artifacts.
 
 Rules:
 
@@ -75,9 +75,9 @@ If the project keeps growing, add a small docs taxonomy:
 - `docs/inbox/` — raw captures, notes, and imported drafts
 - `docs/topics/` — canonical topic notes, one file per topic
 - `docs/adr/` — architecture decisions
-- `docs/superpowers/specs/` — implementation specs
-- `docs/superpowers/plans/` — execution plans
-- `docs/v1/`, `docs/v2/`, `docs/v3/` — source generations, read-only
+- `docs/specs/` — implementation specs
+- `docs/plans/` — execution plans
+- `docs/research/v1/`, `docs/research/v2/`, `docs/research/v3/` — source generations, read-only
 
 If a new folder is introduced, add a short README in that folder so future contributors know how to use it.
 
@@ -223,7 +223,7 @@ After this strategy lands, MemWeaver should have:
 
 ## Open Questions
 
-- Should `docs/v1/`, `docs/v2/`, and `docs/v3/` stay strictly read-only forever?
+- Should `docs/research/v1/`, `docs/research/v2/`, and `docs/research/v3/` stay strictly read-only forever?
 - Do we want a `docs/topics/` layer, or should canonical notes live in existing folders only?
 - Should metadata be frontmatter-based markdown or a separate index file?
 - Which topic should be canonicalized first: product thesis, memory workflow, or UI strategy?

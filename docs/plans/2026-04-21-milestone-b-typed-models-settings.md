@@ -66,7 +66,7 @@ class HealthResponse(BaseModel):
     status: str = "ok"
 ```
 
-**Implementation note:** The repository uses `RootModel[Any]` for the permissive ingest body so clients may send a top-level JSON array or object (matching the Step 2 verification snippet and `docs/v2/s2-claude-plan.md` evolution). The snippet above shows the `payload`-field alternative; prefer the design spec for the canonical contract.
+**Implementation note:** The repository uses `RootModel[Any]` for the permissive ingest body so clients may send a top-level JSON array or object (matching the Step 2 verification snippet and `docs/research/v2/s2-claude-plan.md` evolution). The snippet above shows the `payload`-field alternative; prefer the design spec for the canonical contract.
 
 - [x] **Step 2: Verify models import cleanly**
 
@@ -341,6 +341,6 @@ nothing to commit, working tree clean
 
 ## Self-Review
 
-- **Spec coverage:** Plan addresses Milestone B goals: typed API models + typed settings + route wiring + minimal docs update. Formal acceptance criteria live in `docs/superpowers/specs/2026-04-21-milestone-b-typed-models-settings-design.md`.
+- **Spec coverage:** Plan addresses Milestone B goals: typed API models + typed settings + route wiring + minimal docs update. Formal acceptance criteria live in `docs/specs/2026-04-21-milestone-b-typed-models-settings-design.md`.
 - **Placeholder scan:** No TODO/TBD placeholders.
 - **Type consistency:** Route signatures and response models align across tasks.

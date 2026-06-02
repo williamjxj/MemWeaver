@@ -8,7 +8,7 @@
 
 ## 1. Overview
 
-Build a Next.js chat frontend (`chat-app/`) coupled with a new `/chat` streaming endpoint on the existing FastAPI backend. This implements the "Second Brain" vision from `docs/v2/2nd-brain-implementation.md` §7 — a chat UI where each question is augmented with relevant wiki memory before being sent to the LLM, and each answer is compiled back into the wiki in the background.
+Build a Next.js chat frontend (`chat-app/`) coupled with a new `/chat` streaming endpoint on the existing FastAPI backend. This implements the "Second Brain" vision from `docs/research/v2/2nd-brain-implementation.md` §7 — a chat UI where each question is augmented with relevant wiki memory before being sent to the LLM, and each answer is compiled back into the wiki in the background.
 
 ### Key decisions
 

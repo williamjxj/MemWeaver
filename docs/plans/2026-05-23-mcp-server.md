@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.12, FastMCP 2.x+, FastAPI, aiosqlite, existing pipeline modules (`query_search`, `ingest_worker`, `embedder`)
 
-**Spec:** `docs/superpowers/specs/2026-05-23-mcp-server-design.md`
+**Spec:** `docs/specs/2026-05-23-mcp-server-design.md`
 
 ---
 

@@ -8,6 +8,26 @@ export interface ChatDoneData {
   context_chars: number;
 }
 
+export interface QueryResult {
+  id: string;
+  title: string;
+  type: string;
+  path: string;
+  snippet: string;
+  tags: string[];
+  score: number;
+  updated: string | null;
+  inbound_links: number;
+}
+
+export interface QueryResponse {
+  query: string;
+  mode: "keyword" | "semantic" | "hybrid";
+  results: QueryResult[];
+  total: number;
+  summarized_answer: string | null;
+}
+
 export interface WikiTreeNode {
   id: string;
   label: string;
@@ -19,6 +39,35 @@ export interface StreamCallbacks {
   onToken: (token: string) => void;
   onDone: (data: ChatDoneData) => void;
   onError: (message: string) => void;
+}
+
+export async function queryWiki(
+  question: string,
+  mode: "keyword" | "semantic" | "hybrid" = "hybrid",
+  summarize = true,
+  signal?: AbortSignal,
+): Promise<QueryResponse> {
+  const params = new URLSearchParams({
+    q: question,
+    mode,
+    summarize: summarize ? "true" : "false",
+  });
+
+  const response = signal
+    ? await fetch(`${API_BASE}/query?${params.toString()}`, { signal })
+    : await fetch(`${API_BASE}/query?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+  }
+
+  const data = (await response.json()) as QueryResponse;
+  return {
+    query: data.query ?? question,
+    mode: data.mode ?? mode,
+    results: Array.isArray(data.results) ? data.results : [],
+    total: typeof data.total === "number" ? data.total : 0,
+    summarized_answer: data.summarized_answer ?? null,
+  };
 }
 
 export async function streamChat(

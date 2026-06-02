@@ -1,6 +1,6 @@
 # Plan: Wiki Graph View
 
-**Spec**: `docs/superpowers/specs/2026-05-28-wiki-graph-view-design.md`
+**Spec**: `docs/specs/2026-05-28-wiki-graph-view-design.md`
 **Estimate**: 1-2 days
 
 ---

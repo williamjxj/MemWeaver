@@ -6,9 +6,9 @@ This note canonicalizes the overlapping pipeline ideas from the `v2` and `v3` dr
 
 ## Source Drafts
 
-- `docs/v2/s2-claude-plan.md` - stateless delegator, async ingest, SQLite + Markdown storage, keyword query path
-- `docs/v2/s2-notebooklm.md` - value gate, deterministic retrieval, background memory compilation
-- `docs/v3/deepseek.md` - two-phase workflow, local compiler, public reasoning engine, wiki growth loop
+- `docs/research/v2/s2-claude-plan.md` - stateless delegator, async ingest, SQLite + Markdown storage, keyword query path
+- `docs/research/v2/s2-notebooklm.md` - value gate, deterministic retrieval, background memory compilation
+- `docs/research/v3/deepseek.md` - two-phase workflow, local compiler, public reasoning engine, wiki growth loop
 
 ## Current Pipeline
 

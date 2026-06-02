@@ -1,17 +1,17 @@
 # LLM-Wiki Middleware Delegator
 
-FastAPI backend + Next.js 16 chat frontend + stdio MCP server that implements the **s2 ingest pipeline** ([`docs/v2/s2-claude-plan.md`](docs/v2/s2-claude-plan.md)). Ingest Q/A pairs, search via FTS5 + vector embeddings, and chat with wiki-memory augmented LLM — all fully local via Ollama.
+FastAPI backend + Next.js 16 chat frontend + stdio MCP server implementing a **dual-LLM memory pipeline** ([`docs/research/v2/s2-claude-plan.md`](docs/research/v2/s2-claude-plan.md)). Ingest Q/A pairs, search via FTS5 + vector embeddings, and chat with wiki-memory augmented LLM — **DeepSeek** serves public chat while **Ollama** handles the ingest pipeline, wiki compilation, and semantic embeddings.
 
 Current release: [v0.1.0](CHANGELOG.md). For release history, see [CHANGELOG.md](CHANGELOG.md), [docs/roadmap.md](docs/roadmap.md), and [docs/adr/](docs/adr/).
 For a single entry point into the docs structure, see [docs/README.md](docs/README.md).
 
 ## What’s Included
 
-- `POST /chat` streams answers with wiki context over SSE and compiles the exchange in the background
-- `POST /ingest` queues Q/A pairs for async wiki compilation
+- `POST /chat` streams answers via **DeepSeek** (SSE) with wiki context injection; saving to memory is **opt-in**
+- `POST /ingest` queues Q/A pairs for async wiki compilation via Ollama
 - `GET /query` supports keyword, semantic, and hybrid search modes
-- `GET /wiki/{slug}`, `GET /health`, and `GET /stats` expose wiki content and service status
-- `wiki_search`, `wiki_ingest`, `wiki_get_page`, and `wiki_stats` are available through the MCP server for IDE integrations
+- `GET /wiki/{slug}`, `GET /wiki/graph`, `GET /wiki/tree`, `GET /health`, and `GET /stats` expose wiki content, graph, tree catalog, and service status
+- `wiki_search`, `wiki_ingest`, `wiki_get_page`, and `wiki_stats` are available through the stdio MCP server for IDE integrations
 
 ## Architecture
 
@@ -32,15 +32,17 @@ For a single entry point into the docs structure, see [docs/README.md](docs/READ
 │  FastAPI Backend (localhost:8000)                   │
 │                                                     │
 │  POST /chat ──► classify ──► retrieve wiki          │
-│       │            ──► stream Ollama (SSE)          │
-│       │  (background) ──► wiki compile              │
+│       │            ──► stream DeepSeek (SSE)        │
+│       │  (no auto-save — saving is opt-in)          │
 │                                                     │
-│  POST /ingest    ──► async Ollama distill           │
-│  GET  /query     ──► FTS5 + vector hybrid search    │
+│  POST /ingest      ──► async Ollama distill         │
+│  GET  /query       ──► FTS5 + vector hybrid search  │
 │  GET  /wiki/{slug} ──► read wiki markdown           │
-│  GET  /health    ──► service status                 │
-│  GET  /stats     ──► aggregate counters             │
-│  MCP stdio       ──► wiki_search / wiki_ingest      │
+│  GET  /wiki/graph  ──► wiki nodes + edges           │
+│  GET  /wiki/tree   ──► sidebar catalog              │
+│  GET  /health      ──► service status               │
+│  GET  /stats       ──► aggregate counters           │
+│  MCP stdio         ──► wiki_search / wiki_ingest    │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -136,18 +138,18 @@ Ask the agent: "Search my wiki for FastAPI patterns" — it should call `wiki_se
 
 1. Open `http://localhost:3000` in your browser
 2. Type a question in the input bar and press Enter
-3. The backend classifies your question (coding / design / ml / business / general), retrieves the most relevant wiki page, injects it as context, and streams the LLM response token-by-token via SSE
+3. The backend classifies your question (coding / design / ml / business / general), retrieves the most relevant wiki page, injects it as context, and streams the response token-by-token via DeepSeek SSE
 4. The right sidebar shows the active wiki article being used as context — you can inspect what knowledge the LLM is drawing from
-5. After the response completes, the Q&A pair is automatically compiled into the wiki in the background (value gate → summarize → write → index). Future chats on the same topic will benefit from the newly stored knowledge
-
-The chat endpoint also accepts background knowledge ingestion from chat conversations — every exchange becomes wiki content automatically.
+5. After the response completes, a **"Save to memory"** checkbox appears. Check it (optionally add a note) and click Save to persist the Q&A to the wiki. Saving is opt-in — nothing is automatically compiled.
 
 ### API Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/chat` | Streaming chat with wiki context injection (SSE, auto-compiles response) |
+| `POST` | `/chat` | Streaming chat with wiki context injection (SSE via DeepSeek, opt-in save) |
 | `GET` | `/wiki/{slug}` | Fetch wiki article markdown content |
+| `GET` | `/wiki/graph` | Wiki pages as nodes + wikilink edges (for graph visualization) |
+| `GET` | `/wiki/tree` | Sidebar-friendly wiki catalog from `wiki/index.md` |
 | `POST` | `/ingest` | Submit Q/A pair for async ingestion (returns 202) |
 | `GET` | `/query` | Search ingested knowledge with three modes |
 | `GET` | `/health` | Service health + Ollama + DB status |
@@ -272,8 +274,11 @@ Runtime settings use **pydantic-settings** (env vars and optional `.env`). See [
 | `APP_ENV` | `development` | Environment label |
 | `HOST` | `127.0.0.1` | Bind address |
 | `PORT` | `8000` | Bind port |
+| `DEEPSEEK_API_KEY` | — | API key for DeepSeek (public chat LLM) |
+| `DEEPSEEK_MODEL` | `deepseek-v4-flash` | Model for chat |
+| `DEEPSEEK_BASE_URL` | `https://api.deepseek.com/v1/chat/completions` | Full chat-completions endpoint |
 | `OLLAMA_HOST` | `http://127.0.0.1:11434` | Ollama base URL |
-| `OLLAMA_MODEL` | `minimax-m2.7:cloud` | Model for summarize + wiki body |
+| `OLLAMA_MODEL` | `qwen2.5:7b-instruct` | Model for summarize + wiki body |
 | `OLLAMA_TIMEOUT` | `120` | HTTP timeout (seconds) |
 | `WIKI_DIR` | `wiki` | Markdown vault root |
 | `RAW_DIR` | `raw/qa` | Immutable Q/A JSON root |
@@ -303,20 +308,21 @@ After ingest, poll `GET /stats` or `GET /query?q=…` until new data appears (pi
 
 ```
 ├── server/          # FastAPI backend
-│   ├── main.py      # Routes: /ingest, /chat, /query, /wiki, /health, /stats
-│   ├── models/      # Pydantic request/response schemas
-│   ├── services/    # Classifier, wiki retriever, public LLM
-│   ├── pipeline/    # Ingest worker, FTS, vector search, embedder
-│   ├── config/      # pydantic-settings
-│   └── db/          # SQLite + FTS5
+│   ├── main.py      # Routes: /ingest, /chat, /query, /wiki/*, /health, /stats
+│   ├── models/      # Pydantic request/response schemas (incl. GraphNode, GraphEdge)
+│   ├── services/    # Classifier, deepseek_client, public_llm, wiki_retriever,
+│   │                # wiki_graph_api, wiki_tree_api, memory_api
+│   ├── pipeline/    # Ingest worker, FTS, vector search, embedder, semantic search
+│   ├── config/      # pydantic-settings (incl. DeepSeek config)
+│   └── db/          # SQLite + FTS5 + sqlite-vec
 ├── chat-app/         # Next.js 16 frontend
 │   ├── app/
-│   │   ├── page.tsx           # Main chat page (orchestrator)
+│   │   ├── page.tsx           # Three-stage dashboard (compare / qa / rag / wiki)
 │   │   ├── api/chat/route.ts  # SSE proxy Route Handler
 │   │   └── layout.tsx         # Root layout
-│   └── components/            # ChatWindow, WikiSidebar, MessageBubble, TopicBadge
+│   └── components/            # ModeChatPanel, SaveToMemory, dashboard/, ui/
 ├── wiki/            # LLM-wiki markdown vault
 ├── raw/             # Immutable Q/A JSON artifacts
 ├── docs/            # Plans, specs, design docs
-└── tests/           # Pytest suite (25 tests)
+└── tests/           # Pytest suite (17 test files)
 ```

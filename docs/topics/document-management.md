@@ -4,7 +4,7 @@ MemWeaver’s documentation should separate source drafts from canonical knowled
 
 ## Source Drafts
 
-- `docs/v1/`, `docs/v2/`, and `docs/v3/` are the raw comparison set.
+- `docs/research/v1/`, `docs/research/v2/`, and `docs/research/v3/` are the raw comparison set.
 - Keep them read-only so they remain evidence of how the project was described over time.
 
 ## Canonical Layer

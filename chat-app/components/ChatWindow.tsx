@@ -16,6 +16,10 @@ interface ChatWindowProps {
   onSend: (question: string) => void;
   onStop?: () => void;
   onSaveQa: (question: string, answer: string, note: string) => Promise<boolean>;
+  placeholder?: string;
+  emptyState?: string;
+  sendLabel?: string;
+  showSaveToMemory?: boolean;
 }
 
 export function ChatWindow({
@@ -24,6 +28,10 @@ export function ChatWindow({
   onSend,
   onStop,
   onSaveQa,
+  placeholder = "Ask anything — wiki memory is injected automatically",
+  emptyState = "Ask anything — wiki memory is injected automatically",
+  sendLabel = "Send",
+  showSaveToMemory = true,
 }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -56,7 +64,7 @@ export function ChatWindow({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask anything — wiki memory is injected automatically"
+            placeholder={placeholder}
             disabled={isStreaming}
             className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
           />
@@ -73,7 +81,7 @@ export function ChatWindow({
               disabled={!input.trim()}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
             >
-              Send
+              {sendLabel}
             </button>
           )}
         </div>
@@ -82,7 +90,7 @@ export function ChatWindow({
       <div className="flex-1 overflow-y-auto space-y-3 p-4">
         {messages.length === 0 && !isStreaming && (
           <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-            Ask anything — wiki memory is injected automatically
+            {emptyState}
           </div>
         )}
         {messages.map((m, i) => {
@@ -92,7 +100,7 @@ export function ChatWindow({
           return (
             <div key={m.id} className="space-y-1">
               <MessageBubble role={m.role} content={m.content} isStreaming={streaming} />
-              {completedAssistant && (
+              {showSaveToMemory && completedAssistant && (
                 <div className="flex justify-start">
                   <SaveToMemory question={question} answer={m.content} onSave={onSaveQa} />
                 </div>

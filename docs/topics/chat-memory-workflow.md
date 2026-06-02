@@ -9,11 +9,11 @@ This note canonicalizes the shared ideas across the `v1`, `v2`, and `v3` drafts 
 
 ## Source Drafts
 
-- `docs/v1/s1-claude.md` - early dual-LLM memory pipeline with async wiki updates
-- `docs/v1/s1-chatgpt.md` - retrieval vs. summarization comparison and the LLM-wiki pattern
-- `docs/v2/s2-notebooklm.md` - multi-layer architecture with value gate, async compilation, and deterministic retrieval
-- `docs/v2/s2-claude-plan.md` - stateless delegator, ingest pipeline, SQLite + Markdown store
-- `docs/v3/deepseek.md` - local Ollama as memory compiler, public LLM as reasoning engine, wiki as persistent memory
+- `docs/research/v1/s1-claude.md` - early dual-LLM memory pipeline with async wiki updates
+- `docs/research/v1/s1-chatgpt.md` - retrieval vs. summarization comparison and the LLM-wiki pattern
+- `docs/research/v2/s2-notebooklm.md` - multi-layer architecture with value gate, async compilation, and deterministic retrieval
+- `docs/research/v2/s2-claude-plan.md` - stateless delegator, ingest pipeline, SQLite + Markdown store
+- `docs/research/v3/deepseek.md` - local Ollama as memory compiler, public LLM as reasoning engine, wiki as persistent memory
 
 ## Canonical Workflow
 

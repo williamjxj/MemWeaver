@@ -44,3 +44,6 @@ htmlcov/
 .obsidian/
 .sisyphus/
 .playwright-mcp/
+.omo/
+raw/qa/
+wiki/concepts/

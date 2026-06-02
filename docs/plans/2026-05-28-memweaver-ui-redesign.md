@@ -1,6 +1,6 @@
 # Plan: MemWeaver UI Redesign
 
-**Spec**: `docs/superpowers/specs/2026-05-28-memweaver-ui-redesign.md`
+**Spec**: `docs/specs/2026-05-28-memweaver-ui-redesign.md`
 **Branch**: `ui-redesign-sage-garden`
 **Estimate**: 2-3 days
 
