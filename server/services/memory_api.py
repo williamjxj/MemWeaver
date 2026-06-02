@@ -46,6 +46,7 @@ async def enqueue_ingest(
     tags: list[str] | None = None,
     session_id: str | None = None,
     received_at: datetime | None = None,
+    note: str | None = None,
 ) -> dict[str, str]:
     """Enqueue a Q/A pair for async wiki compilation."""
     _ = settings  # reserved for future validation hooks
@@ -67,6 +68,7 @@ async def enqueue_ingest(
         session_id=session_id,
         tags=tags or [],
         received_at=received,
+        note=note,
     )
     try:
         queue.put_nowait(job)

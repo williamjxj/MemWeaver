@@ -80,6 +80,7 @@ async def ingest(payload: IngestPayload) -> IngestResponse:
             tags=payload.tags,
             session_id=payload.session_id,
             received_at=received,
+            note=payload.note,
         )
     except IngestQueueFullError as err:
         raise HTTPException(status_code=503, detail="ingest queue is full") from err

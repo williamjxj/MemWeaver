@@ -23,6 +23,7 @@ class IngestPayload(BaseModel):
     source: str = "unknown"
     session_id: str | None = None
     tags: list[str] = Field(default_factory=list)
+    note: str | None = None
     timestamp: datetime | None = None
 
 

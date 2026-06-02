@@ -32,6 +32,7 @@ class IngestJob:
     session_id: str | None
     tags: list[str]
     received_at: datetime
+    note: str | None = None
 
 
 def _strip_frontmatter(md: str) -> str:
@@ -149,6 +150,7 @@ async def run_ingest_pipeline(job: IngestJob, settings: Settings) -> None:
         "received_at": received_iso,
         "source": job.source,
         "session_id": job.session_id,
+        "note": job.note,
         "original": {"question": job.question, "answer": job.answer},
         "summary": {
             "atom": atom,
