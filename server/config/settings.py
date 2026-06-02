@@ -18,6 +18,12 @@ class Settings(BaseSettings):
     ollama_timeout: float = Field(default=120.0)
     ollama_api_key: str = Field(default="")
 
+    deepseek_api_key: str = Field(default="")
+    deepseek_model: str = Field(default="deepseek-v4-flash")
+    deepseek_base_url: str = Field(
+        default="https://api.deepseek.com/v1/chat/completions"
+    )
+
     wiki_dir: Path = Field(default=Path("wiki"))
     raw_dir: Path = Field(default=Path("raw/qa"))
     dlq_dir: Path = Field(default=Path("raw/failed"))
