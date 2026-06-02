@@ -7,6 +7,9 @@ def test_build_messages_with_summary():
     msgs = build_messages("What is RAG?", "RAG = retrieval augmented generation")
     assert msgs[0]["role"] == "system"
     assert "RAG = retrieval augmented generation" in msgs[0]["content"]
+    assert msgs[0]["content"] == WIKI_INJECTION_TEMPLATE.format(
+        summary="RAG = retrieval augmented generation"
+    )
     assert msgs[-1] == {"role": "user", "content": "What is RAG?"}
     assert len(msgs) == 2
 
