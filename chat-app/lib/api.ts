@@ -97,3 +97,25 @@ export async function fetchWikiTree(): Promise<WikiTreeNode[]> {
   const data = await res.json();
   return data.tree ?? [];
 }
+
+export async function saveQa(
+  question: string,
+  answer: string,
+  note?: string,
+): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/ingest`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        question,
+        answer,
+        source: "chat",
+        ...(note && note.trim() ? { note: note.trim() } : {}),
+      }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
