@@ -30,7 +30,7 @@ from server.pipeline.query_search import synthesize_answer
 from server.services import memory_api, wiki_graph_api, wiki_tree_api
 from server.services.classifier import SKILL_TAXONOMY, classify_topic, classify_with_ollama
 from server.services.memory_api import IngestQueueFullError
-from server.services.public_llm import stream_ollama_chat
+from server.services.public_llm import stream_chat
 from server.services.wiki_retriever import retrieve_summary
 
 logger = logging.getLogger(__name__)
@@ -195,7 +195,7 @@ async def chat(req: ChatRequest):
     async def event_stream():
         full_answer = ""
         try:
-            async for token in stream_ollama_chat(req.question, summary, cfg):
+            async for token in stream_chat(req.question, summary, cfg):
                 full_answer += token
                 yield f"event: token\ndata: {json.dumps({'text': token})}\n\n"
         except Exception:
