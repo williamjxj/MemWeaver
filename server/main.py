@@ -183,8 +183,8 @@ async def stats() -> StatsResponse:
 @app.post("/chat")
 async def chat(req: ChatRequest):
     """Streaming chat endpoint. Classifies topic, retrieves wiki context,
-    streams the public LLM (DeepSeek) response via SSE, then enqueues
-    background wiki compilation."""
+    and streams the public LLM (DeepSeek) response via SSE. Saving the turn
+    to memory is opt-in via an explicit POST /ingest, not done here."""
     cfg = app.state.settings
 
     topic, slugs = classify_topic(req.question)
