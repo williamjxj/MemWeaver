@@ -21,7 +21,7 @@ The embedding model (`nomic-embed-text` via Ollama) is unchanged.
 
 | Decision | Choice |
 |----------|--------|
-| Chat API protocol | **OpenAI-compatible** — `POST https://api.deepseek.com/v1/chat/completions`, `stream:true` (SSE), raw `httpx` |
+| Chat API protocol | **OpenAI-compatible** — `POST` directly to `DEEPSEEK_BASE_URL` (the full `.../v1/chat/completions` endpoint), `stream:true` (SSE), raw `httpx` |
 | Scope of DeepSeek | **`/chat` only** — distill, wiki-gen, classifier fallback, contradiction check, query synthesis all stay on local Ollama |
 | Failure behavior | **Error, no fallback/retry** — emit existing SSE `event: error` and stop |
 | Code structure | **Approach A** — dedicated `deepseek_client.py`; `public_llm.py` rewired to delegate to it |
@@ -44,10 +44,11 @@ Add to `server/config/settings.py`:
 ```python
 deepseek_api_key: str = Field(default="")
 deepseek_model: str = Field(default="deepseek-v4-flash")
-deepseek_base_url: str = Field(default="https://api.deepseek.com")
+deepseek_base_url: str = Field(default="https://api.deepseek.com/v1/chat/completions")
 ```
 
-- Env vars: `DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL`, `DEEPSEEK_BASE_URL`. The first two already exist in `.env`; add `DEEPSEEK_BASE_URL`.
+- Env vars: `DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL`, `DEEPSEEK_BASE_URL`. All three already exist in `.env`.
+- **`DEEPSEEK_BASE_URL` is the full chat-completions endpoint** (`https://api.deepseek.com/v1/chat/completions`). The client POSTs directly to it — it does **not** append a path.
 - `OLLAMA_*` unchanged — `OLLAMA_MODEL=qwen2.5:7b-instruct` remains the pipeline model.
 - `.env.example` documents the three new vars with a placeholder key (never the real key).
 - `.env` is gitignored (verified) — the real key stays local.
@@ -58,7 +59,7 @@ deepseek_base_url: str = Field(default="https://api.deepseek.com")
 
 | Component | Change |
 |-----------|--------|
-| `server/services/deepseek_client.py` | **New.** `stream_deepseek_chat(question, wiki_summary, settings) -> AsyncGenerator[str, None]`. POSTs `{base_url}/v1/chat/completions` with `stream:true`, header `Authorization: Bearer {deepseek_api_key}`. Body: messages `[system: WIKI_INJECTION_TEMPLATE(summary) (omitted if empty), user: question]`, `temperature` ~0.2, `max_tokens` ~256. Parses OpenAI SSE: each `data: {...}` line → `choices[0].delta.content`; stops on `data: [DONE]`. |
+| `server/services/deepseek_client.py` | **New.** `stream_deepseek_chat(question, wiki_summary, settings) -> AsyncGenerator[str, None]`. POSTs directly to `settings.deepseek_base_url` with `stream:true`, header `Authorization: Bearer {deepseek_api_key}`. Body: model `deepseek_model`, messages `[system: WIKI_INJECTION_TEMPLATE(summary) (omitted if empty), user: question]`, `temperature` ~0.2, `max_tokens` ~256. Parses OpenAI SSE: each `data: {...}` line → `choices[0].delta.content`; stops on `data: [DONE]`. |
 | `server/services/public_llm.py` | **Rewired.** Keeps `WIKI_INJECTION_TEMPLATE`. Builds the system/user messages and delegates streaming to `deepseek_client`. The entry point is **renamed `stream_ollama_chat` → `stream_chat`**, and `main.py`'s import + call site are updated accordingly. |
 | `server/main.py` `/chat` | Same flow (classify → retrieve_summary → stream → enqueue background ingest). Only the streaming target changes; RAG context injection preserved. |
 | `server/ollama/client.py`, `ingest_worker.py`, `classifier.py`, `contradictions.py`, `query_search.py` | **Untouched** — still `qwen2.5:7b-instruct`. |
