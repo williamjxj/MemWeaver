@@ -29,3 +29,65 @@ def test_extract_non_data_line_returns_none():
 
 def test_extract_malformed_json_returns_none():
     assert _extract_token("data: {not json}") is None
+
+
+import httpx
+import pytest
+
+from server.config import Settings
+from server.services import deepseek_client
+from server.services.deepseek_client import stream_deepseek_chat
+
+
+@pytest.mark.asyncio
+async def test_stream_deepseek_chat_yields_tokens_until_done(monkeypatch):
+    sse_body = (
+        'data: {"choices":[{"delta":{"role":"assistant"}}]}\n\n'
+        'data: {"choices":[{"delta":{"content":"Hel"}}]}\n\n'
+        ': keep-alive\n\n'
+        'data: {"choices":[{"delta":{"content":"lo"}}]}\n\n'
+        'data: [DONE]\n\n'
+        'data: {"choices":[{"delta":{"content":"AFTER_DONE"}}]}\n\n'
+    )
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text=sse_body)
+
+    transport = httpx.MockTransport(handler)
+    real_async_client = httpx.AsyncClient
+
+    def client_factory(*args, **kwargs):
+        kwargs.pop("transport", None)
+        return real_async_client(*args, transport=transport, **kwargs)
+
+    monkeypatch.setattr(deepseek_client.httpx, "AsyncClient", client_factory)
+
+    settings = Settings(deepseek_api_key="sk-test")
+    tokens = [
+        tok async for tok in stream_deepseek_chat(
+            [{"role": "user", "content": "hi"}], settings
+        )
+    ]
+    assert tokens == ["Hel", "lo"]
+
+
+@pytest.mark.asyncio
+async def test_stream_deepseek_chat_raises_on_http_error(monkeypatch):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(401, text="unauthorized")
+
+    transport = httpx.MockTransport(handler)
+    real_async_client = httpx.AsyncClient
+
+    def client_factory(*args, **kwargs):
+        kwargs.pop("transport", None)
+        return real_async_client(*args, transport=transport, **kwargs)
+
+    monkeypatch.setattr(deepseek_client.httpx, "AsyncClient", client_factory)
+
+    settings = Settings(deepseek_api_key="sk-test")
+    with pytest.raises(httpx.HTTPStatusError):
+        async for _ in stream_deepseek_chat(
+            [{"role": "user", "content": "hi"}], settings
+        ):
+            pass

@@ -182,7 +182,8 @@ async def stats() -> StatsResponse:
 @app.post("/chat")
 async def chat(req: ChatRequest):
     """Streaming chat endpoint. Classifies topic, retrieves wiki context,
-    streams Ollama response via SSE, then enqueues background wiki compilation."""
+    streams the public LLM (DeepSeek) response via SSE, then enqueues
+    background wiki compilation."""
     cfg = app.state.settings
 
     topic, slugs = classify_topic(req.question)
@@ -193,6 +194,9 @@ async def chat(req: ChatRequest):
     slug, summary = await retrieve_summary(req.question, slugs, cfg)
 
     async def event_stream():
+        if not cfg.deepseek_api_key:
+            yield f"event: error\ndata: {json.dumps({'message': 'DEEPSEEK_API_KEY is not configured'})}\n\n"
+            return
         full_answer = ""
         try:
             async for token in stream_chat(req.question, summary, cfg):
@@ -200,7 +204,7 @@ async def chat(req: ChatRequest):
                 yield f"event: token\ndata: {json.dumps({'text': token})}\n\n"
         except Exception:
             logger.exception("chat streaming failed")
-            yield f"event: error\ndata: {json.dumps({'message': 'Ollama stream failed'})}\n\n"
+            yield f"event: error\ndata: {json.dumps({'message': 'chat stream failed'})}\n\n"
             return
 
         yield (
