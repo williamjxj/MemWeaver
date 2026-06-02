@@ -1,6 +1,11 @@
 """Tests for the DeepSeek OpenAI-compatible SSE parser."""
 
-from server.services.deepseek_client import _extract_token, _DONE
+import httpx
+import pytest
+
+from server.config import Settings
+from server.services import deepseek_client
+from server.services.deepseek_client import _extract_token, _DONE, stream_deepseek_chat
 
 
 def test_extract_content_token():
@@ -29,14 +34,6 @@ def test_extract_non_data_line_returns_none():
 
 def test_extract_malformed_json_returns_none():
     assert _extract_token("data: {not json}") is None
-
-
-import httpx
-import pytest
-
-from server.config import Settings
-from server.services import deepseek_client
-from server.services.deepseek_client import stream_deepseek_chat
 
 
 @pytest.mark.asyncio
