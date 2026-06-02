@@ -213,20 +213,6 @@ async def chat(req: ChatRequest):
             f"data: {json.dumps({'wiki_slug': slug, 'topic': topic, 'context_chars': len(summary)})}\n\n"
         )
 
-        # Phase B: enqueue wiki compilation in the background
-        if full_answer.strip():
-            try:
-                await memory_api.enqueue_ingest(
-                    cfg,
-                    app.state.ingest_queue,
-                    question=req.question.strip(),
-                    answer=full_answer.strip(),
-                    source="chat",
-                    tags=[topic],
-                )
-            except Exception:
-                logger.exception("failed to enqueue background compilation for chat")
-
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
