@@ -45,11 +45,13 @@ export function SaveToMemory({ question, answer, onSave }: SaveToMemoryProps) {
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Optional note / metadata…"
+            aria-label="Note for saved memory"
             rows={2}
             className="w-full border rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={handleSave}
               disabled={status === "saving"}
               className="px-2 py-1 bg-primary text-primary-foreground rounded text-xs hover:opacity-90 disabled:opacity-50"
@@ -57,7 +59,7 @@ export function SaveToMemory({ question, answer, onSave }: SaveToMemoryProps) {
               {status === "saving" ? "Saving…" : "Save"}
             </button>
             {status === "error" && (
-              <span className="text-destructive">Couldn&apos;t save — try again</span>
+              <span className="text-destructive" role="alert">Couldn&apos;t save — try again</span>
             )}
           </div>
         </div>
