@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { MessageBubble } from "./MessageBubble";
+import { SaveToMemory } from "./SaveToMemory";
 
 interface Message {
   id: string;
@@ -14,6 +15,7 @@ interface ChatWindowProps {
   isStreaming: boolean;
   onSend: (question: string) => void;
   onStop?: () => void;
+  onSaveQa: (question: string, answer: string, note: string) => Promise<boolean>;
 }
 
 export function ChatWindow({
@@ -21,6 +23,7 @@ export function ChatWindow({
   isStreaming,
   onSend,
   onStop,
+  onSaveQa,
 }: ChatWindowProps) {
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -82,14 +85,21 @@ export function ChatWindow({
             Ask anything — wiki memory is injected automatically
           </div>
         )}
-        {messages.map((m, i) => (
-          <MessageBubble
-            key={m.id}
-            role={m.role}
-            content={m.content}
-            isStreaming={isStreaming && i === messages.length - 1 && m.role === "assistant"}
-          />
-        ))}
+        {messages.map((m, i) => {
+          const streaming = isStreaming && i === messages.length - 1 && m.role === "assistant";
+          const completedAssistant = m.role === "assistant" && m.content.trim().length > 0 && !streaming;
+          const question = i > 0 && messages[i - 1].role === "user" ? messages[i - 1].content : "";
+          return (
+            <div key={m.id} className="space-y-1">
+              <MessageBubble role={m.role} content={m.content} isStreaming={streaming} />
+              {completedAssistant && (
+                <div className="flex justify-start">
+                  <SaveToMemory question={question} answer={m.content} onSave={onSaveQa} />
+                </div>
+              )}
+            </div>
+          );
+        })}
         {isStreaming && !messages.some((m) => m.role === "assistant" && m.content) && (
           <div className="flex justify-start">
             <div className="bg-muted rounded-lg px-4 py-2 text-sm text-muted-foreground">

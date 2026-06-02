@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { ChatWindow } from "@/components/ChatWindow";
 import { Dashboard, type ActiveContextItem, type DashboardView, type HistoryItem, type TreeNode, type SystemEntry, type WikiPage } from "@/components/dashboard/Dashboard";
-import { streamChat, fetchWikiContent, fetchWikiTree, type ChatDoneData, type WikiTreeNode } from "@/lib/api";
+import { streamChat, fetchWikiContent, fetchWikiTree, saveQa, type ChatDoneData, type WikiTreeNode } from "@/lib/api";
 
 interface Message {
   id: string;
@@ -163,6 +163,10 @@ export default function Home() {
     setIsStreaming(false);
   }
 
+  async function handleSaveQa(question: string, answer: string, note: string): Promise<boolean> {
+    return saveQa(question, answer, note);
+  }
+
   function handleHistoryRerun(query: string) {
     handleSend(query);
   }
@@ -226,6 +230,7 @@ export default function Home() {
             isStreaming={isStreaming}
             onSend={handleSend}
             onStop={handleStop}
+            onSaveQa={handleSaveQa}
           />
         </main>
 
