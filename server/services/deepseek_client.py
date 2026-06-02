@@ -1,14 +1,11 @@
 """Streaming DeepSeek client (OpenAI-compatible) for the /chat endpoint."""
 
 import json
-import logging
 from typing import Any, AsyncGenerator
 
 import httpx
 
 from server.config import Settings
-
-logger = logging.getLogger(__name__)
 
 # Sentinel returned by _extract_token when the stream signals completion.
 _DONE = object()
