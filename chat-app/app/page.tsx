@@ -3,14 +3,16 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ModeChatPanel } from "@/components/ModeChatPanel";
+import { InventoryPanel } from "@/components/InventoryPanel";
 
-type ActiveView = "compare" | "qa" | "rag" | "wiki";
+type ActiveView = "compare" | "qa" | "rag" | "wiki" | "inventory";
 
 const stageTabs: Array<{ id: ActiveView; label: string; description: string }> = [
   { id: "compare", label: "Compare", description: "All three stages side by side" },
   { id: "qa", label: "QA Chat", description: "DeepSeek streaming over raw Q/A" },
   { id: "rag", label: "RAG", description: "Hybrid BM25 + sqlite-vec retrieval" },
   { id: "wiki", label: "LLM-Wiki", description: "Distilled markdown query layer" },
+  { id: "inventory", label: "Inventory", description: "Record counts across all data stores" },
 ];
 
 const panelConfigs = {
@@ -124,7 +126,11 @@ export default function Home() {
             </>
           ) : (
             <div className="w-full max-w-6xl">
-              {singleView ? <ModeChatPanel {...panelConfigs[singleView]} /> : null}
+              {singleView === "inventory" ? (
+                <InventoryPanel />
+              ) : singleView ? (
+                <ModeChatPanel {...panelConfigs[singleView as keyof typeof panelConfigs]} />
+              ) : null}
             </div>
           )}
         </main>

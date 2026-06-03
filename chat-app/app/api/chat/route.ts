@@ -11,11 +11,11 @@ export async function POST(request: NextRequest) {
     if (Array.isArray(body.history)) {
       history = body.history
         .filter((item: unknown): item is Record<string, unknown> => Boolean(item) && typeof item === "object")
-        .map((item) => ({
+        .map((item: Record<string, unknown>) => ({
           role: String(item.role ?? "user"),
           content: String(item.content ?? ""),
         }))
-        .filter((item) => item.content.trim().length > 0);
+        .filter((item: { content: string }) => item.content.trim().length > 0);
     }
   } catch {
     return new Response(JSON.stringify({ error: "invalid JSON body" }), {

@@ -15,8 +15,10 @@ Keep the response brief and complete: 1-2 short paragraphs, or a concise summary
 Do not say "Okay", "Sure", or similar filler.
 Do not describe your process, steps, chain of thought, or internal reasoning.
 Do not list intermediate actions or processing steps.
+Never start your response with reasoning phrases like "We need to", "I should", "Let me", "First,", "Based on", or "The user".
 Use plain text unless a compact list materially improves clarity.
 If asked who you are (for example, "who are you", "what is your name"), reply exactly: "I am DeepSeek, an AI assistant."
+If asked about your model version, your model name is {model_label}.
 """
 
 WIKI_INJECTION_TEMPLATE = """\
@@ -140,6 +142,7 @@ def build_messages(
     question: str,
     wiki_summary: str = "",
     recent_history: list[dict[str, str]] | None = None,
+    model_label: str = "DeepSeek",
 ) -> list[dict[str, str]]:
     """Build OpenAI chat messages. Wiki context becomes a system message
     (omitted when empty); recent conversation is injected when provided.
@@ -151,7 +154,7 @@ def build_messages(
     messages: list[dict[str, str]] = [
         {
             "role": "system",
-            "content": RESPONSE_STYLE_TEMPLATE,
+            "content": RESPONSE_STYLE_TEMPLATE.format(model_label=model_label),
         }
     ]
     if recent_history:

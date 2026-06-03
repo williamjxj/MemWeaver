@@ -19,3 +19,4 @@ Catalog of compiled pages. Updated when concepts change or new pages are added.
 
 ## Auto-index (pipeline)
 
+- [[tensorflow]] — PyTorch uses eager execution while TensorFlow traditionally used static graphs.

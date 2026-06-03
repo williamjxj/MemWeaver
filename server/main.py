@@ -5,6 +5,7 @@ import json
 import logging
 from contextlib import asynccontextmanager, suppress
 from datetime import datetime, timezone
+from pathlib import Path
 
 import aiosqlite
 import httpx
@@ -14,6 +15,7 @@ from fastapi.responses import StreamingResponse
 
 from server.config import get_settings
 from server.db.database import init_db
+from server.db.vec import load_vec
 from server.models.api import (
     ChatRequest,
     GraphResponse,
@@ -180,6 +182,105 @@ async def stats() -> StatsResponse:
     )
 
 
+@app.get("/inventory")
+async def inventory():
+    """Record counts across all data stores: raw QA, wiki concepts, DB tables, index, log."""
+    cfg = app.state.settings
+
+    raw_qa: dict = {"total": 0, "by_date": {}}
+    raw_base = Path(cfg.raw_dir)
+    if raw_base.is_dir():
+        for d in sorted(raw_base.iterdir()):
+            if not d.is_dir():
+                continue
+            count = len(list(d.glob("*.json")))
+            if count:
+                raw_qa["by_date"][d.name] = count
+                raw_qa["total"] += count
+
+    concepts_dir = Path(cfg.wiki_dir) / "concepts"
+    concepts = 0
+    concept_files: list[dict] = []
+    if concepts_dir.is_dir():
+        for f in sorted(concepts_dir.glob("*.md")):
+            concepts += 1
+            concept_files.append({"name": f.name, "size": fmt_size(f)})
+
+    db_info: dict = {}
+    db_path = Path(cfg.db_path)
+    if db_path.is_file():
+        try:
+            async with aiosqlite.connect(str(db_path)) as db:
+                await load_vec(db)
+                rows = await db.execute_fetchall(
+                    "SELECT name FROM sqlite_master WHERE type='table' "
+                    "ORDER BY name"
+                )
+                all_counts: dict = {}
+                for (name,) in rows:
+                    try:
+                        row = await db.execute_fetchall(
+                            f'SELECT COUNT(*) FROM "{name}"'
+                        )
+                        all_counts[name] = row[0][0] if row else 0
+                    except Exception:
+                        all_counts[name] = "N/A"
+                db_info = {
+                    "pages": all_counts.get("pages", 0),
+                    "qa_pairs": all_counts.get("qa_pairs", 0),
+                    "wiki_links": all_counts.get("wiki_links", 0),
+                    "all_tables": all_counts,
+                }
+        except Exception:
+            db_info = {"error": "unreadable"}
+        db_info["db_size"] = fmt_size(db_path)
+
+    index_info: dict = {"total": 0, "file_lines": 0}
+    index_path = Path(cfg.wiki_dir) / "index.md"
+    if index_path.is_file():
+        lines = index_path.read_text(encoding="utf-8").splitlines()
+        in_concepts = False
+        entries = 0
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("## Concepts"):
+                in_concepts = True
+                continue
+            if in_concepts and stripped.startswith("## "):
+                break
+            if in_concepts and line.startswith("|") and "---" not in line and "Page" not in line:
+                parts = [p.strip() for p in line.strip("|").split("|")]
+                if len(parts) >= 2 and parts[0]:
+                    entries += 1
+        index_info = {"total": entries, "file_lines": len(lines)}
+        index_info["size"] = fmt_size(index_path)
+
+    log_info: dict = {"total": 0, "file_lines": 0}
+    log_path = Path(cfg.wiki_dir) / "log.md"
+    if log_path.is_file():
+        lines = log_path.read_text(encoding="utf-8").splitlines()
+        entries = [l for l in lines if l.strip().startswith("## ")]
+        log_info = {"total": len(entries), "file_lines": len(lines)}
+        log_info["size"] = fmt_size(log_path)
+
+    return {
+        "raw_qa": raw_qa,
+        "concepts": {"total": concepts, "files": concept_files},
+        "db": db_info,
+        "index": index_info,
+        "log": log_info,
+    }
+
+
+def fmt_size(path: Path) -> str:
+    size = path.stat().st_size
+    for unit in ("B", "KB", "MB", "GB"):
+        if size < 1024:
+            return f"{size:.0f} {unit}"
+        size /= 1024
+    return f"{size:.1f} GB"
+
+
 @app.post("/chat")
 async def chat(req: ChatRequest):
     """Streaming chat endpoint. Classifies topic, retrieves wiki context,
@@ -219,6 +320,7 @@ async def chat(req: ChatRequest):
         req.question,
         wiki_summary=summary,
         recent_history=[turn.model_dump() for turn in history],
+        model_label=cfg.deepseek_model,
     )
 
     async def event_stream():

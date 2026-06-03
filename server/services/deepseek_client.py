@@ -64,7 +64,7 @@ async def stream_deepseek_chat(
         "messages": messages,
         "stream": True,
         "temperature": 0.2,
-        "max_tokens": 256,
+        #         "max_tokens": 256,
     }
     headers = {"Content-Type": "application/json"}
     if settings.deepseek_api_key:

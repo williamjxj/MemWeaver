@@ -157,6 +157,67 @@ export async function fetchWikiTree(): Promise<WikiTreeNode[]> {
   return data.tree ?? [];
 }
 
+export interface GraphNode {
+  id: string;
+  title: string | null;
+  category: string | null;
+  inbound_links: number;
+}
+
+export interface GraphEdge {
+  source: string;
+  target: string;
+}
+
+export interface GraphData {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
+export async function fetchWikiGraph(): Promise<GraphData> {
+  const res = await fetch(`${API_BASE}/wiki/graph`);
+  if (!res.ok) {
+    throw new Error(`Wiki graph fetch failed: ${res.status} ${res.statusText}`);
+  }
+  return res.json() as Promise<GraphData>;
+}
+
+export interface InventoryData {
+  raw_qa: {
+    total: number;
+    by_date: Record<string, number>;
+  };
+  concepts: {
+    total: number;
+    files: Array<{ name: string; size: string }>;
+  };
+  db: {
+    pages: number;
+    qa_pairs: number;
+    wiki_links: number;
+    all_tables: Record<string, number | string>;
+    db_size?: string;
+  };
+  index: {
+    total: number;
+    file_lines: number;
+    size?: string;
+  };
+  log: {
+    total: number;
+    file_lines: number;
+    size?: string;
+  };
+}
+
+export async function fetchInventory(): Promise<InventoryData> {
+  const res = await fetch(`${API_BASE}/inventory`);
+  if (!res.ok) {
+    throw new Error(`Inventory fetch failed: ${res.status} ${res.statusText}`);
+  }
+  return res.json() as Promise<InventoryData>;
+}
+
 export async function saveQa(
   question: string,
   answer: string,

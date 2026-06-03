@@ -7,11 +7,13 @@ from server.services.public_llm import (
     build_messages,
 )
 
+DEFAULT_TEMPLATE = RESPONSE_STYLE_TEMPLATE.format(model_label="DeepSeek")
+
 
 def test_build_messages_with_summary():
     msgs = build_messages("What is RAG?", "RAG = retrieval augmented generation")
     assert msgs[0]["role"] == "system"
-    assert msgs[0]["content"] == RESPONSE_STYLE_TEMPLATE
+    assert msgs[0]["content"] == DEFAULT_TEMPLATE
     assert msgs[1]["role"] == "system"
     assert "RAG = retrieval augmented generation" in msgs[1]["content"]
     assert msgs[1]["content"] == WIKI_INJECTION_TEMPLATE.format(
@@ -23,14 +25,14 @@ def test_build_messages_with_summary():
 
 def test_build_messages_without_summary():
     msgs = build_messages("Hello", "")
-    assert msgs[0]["content"] == RESPONSE_STYLE_TEMPLATE
+    assert msgs[0]["content"] == DEFAULT_TEMPLATE
     assert msgs[-1] == {"role": "user", "content": "Hello"}
 
 
 def test_build_messages_whitespace_summary_is_skipped():
     msgs = build_messages("Hello", "   \n  ")
     assert len(msgs) == 2
-    assert msgs[0]["content"] == RESPONSE_STYLE_TEMPLATE
+    assert msgs[0]["content"] == DEFAULT_TEMPLATE
     assert msgs[1]["role"] == "user"
 
 
@@ -45,7 +47,7 @@ def test_build_messages_with_recent_history_and_summary():
     )
 
     assert msgs[0]["role"] == "system"
-    assert msgs[0]["content"] == RESPONSE_STYLE_TEMPLATE
+    assert msgs[0]["content"] == DEFAULT_TEMPLATE
     assert msgs[1]["role"] == "system"
     assert msgs[1]["content"] == RECENT_HISTORY_TEMPLATE.format(
         history="user: We discussed the roadmap.\nassistant: Use the API first."
@@ -63,7 +65,7 @@ def test_build_messages_history_without_summary():
     )
 
     assert len(msgs) == 3
-    assert msgs[0]["content"] == RESPONSE_STYLE_TEMPLATE
+    assert msgs[0]["content"] == DEFAULT_TEMPLATE
     assert msgs[1]["content"].startswith("You also have the most recent conversation turns")
     assert msgs[2] == {"role": "user", "content": "Continue"}
 
@@ -80,7 +82,7 @@ def test_build_messages_rich_history_adds_session_digest():
     msgs = build_messages("What should I do next?", "wiki memory", history)
 
     assert msgs[0]["role"] == "system"
-    assert msgs[0]["content"] == RESPONSE_STYLE_TEMPLATE
+    assert msgs[0]["content"] == DEFAULT_TEMPLATE
     assert len(msgs) == 5
     assert msgs[1]["content"].startswith("You also have a compact session digest")
     assert msgs[1]["content"].startswith("You also have a compact session digest")
