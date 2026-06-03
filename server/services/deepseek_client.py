@@ -11,12 +11,19 @@ from server.config import Settings
 _DONE = object()
 
 
-def _extract_token(line: str) -> Any:
+# Tunnel-vision tokens returned by _extract_token to distinguish content from
+# reasoning — only the latter should be discarded if content ever appears.
+_CONTENT = object()
+_REASONING = object()
+
+
+def _extract_token(line: str) -> tuple[Any, str] | Any:
     """Parse one OpenAI-style SSE line.
 
-    Returns the content string, the _DONE sentinel on completion, or None
-    for lines that carry no content (blank, comments, role-only deltas,
-    or unparseable JSON).
+    Returns a 2-tuple (marker, token_text) for content-bearing lines:
+      (_CONTENT,  text)  — a visible-response token (prefer this)
+      (_REASONING, text) — an internal-reasoning token (fallback only)
+    Returns _DONE on stream completion, or None for blank/ignorable lines.
     """
     line = line.strip()
     if not line or not line.startswith("data:"):
@@ -29,10 +36,19 @@ def _extract_token(line: str) -> Any:
     except json.JSONDecodeError:
         return None
     try:
-        content = data["choices"][0]["delta"].get("content")
+        delta = data["choices"][0]["delta"]
     except (KeyError, IndexError, TypeError):
         return None
-    return content or None
+
+    content_text = delta.get("content")
+    if content_text:
+        return (_CONTENT, content_text)
+
+    reasoning_text = delta.get("reasoning_content")
+    if reasoning_text:
+        return (_REASONING, reasoning_text)
+
+    return None
 
 
 async def stream_deepseek_chat(
@@ -59,9 +75,22 @@ async def stream_deepseek_chat(
             "POST", settings.deepseek_base_url, json=body, headers=headers
         ) as response:
             response.raise_for_status()
+            reasoning_buffer: list[str] = []
+            content_seen = False
             async for line in response.aiter_lines():
-                token = _extract_token(line)
-                if token is _DONE:
+                result = _extract_token(line)
+                if result is _DONE:
+                    if not content_seen and reasoning_buffer:
+                        for token in reasoning_buffer:
+                            yield token
                     return
-                if token:
-                    yield token
+                if result is None:
+                    continue
+
+                marker, text = result
+                if marker is _CONTENT:
+                    content_seen = True
+                    reasoning_buffer.clear()
+                    yield text
+                elif marker is _REASONING and not content_seen:
+                    reasoning_buffer.append(text)

@@ -6,6 +6,13 @@ export interface ChatDoneData {
   wiki_slug: string | null;
   topic: string;
   context_chars: number;
+  context_mode?: "cold" | "warm" | "rich";
+  history_turns?: number;
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
 }
 
 export interface QueryResult {
@@ -73,12 +80,13 @@ export async function queryWiki(
 export async function streamChat(
   question: string,
   callbacks: StreamCallbacks,
+  history: ChatMessage[] = [],
   signal?: AbortSignal,
 ): Promise<void> {
   const res = await fetch(CHAT_API, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question, history }),
     signal,
   });
 
@@ -120,6 +128,8 @@ export async function streamChat(
               wiki_slug: data.wiki_slug ?? null,
               topic: data.topic ?? "",
               context_chars: data.context_chars ?? 0,
+              context_mode: data.context_mode ?? undefined,
+              history_turns: data.history_turns ?? undefined,
             });
           } else if (currentEvent === "error") {
             callbacks.onError(data.message || "Unknown error");

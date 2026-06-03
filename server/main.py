@@ -30,7 +30,7 @@ from server.pipeline.query_search import synthesize_answer
 from server.services import memory_api, wiki_graph_api, wiki_tree_api
 from server.services.classifier import SKILL_TAXONOMY, classify_topic, classify_with_ollama
 from server.services.memory_api import IngestQueueFullError
-from server.services.public_llm import stream_chat
+from server.services.public_llm import build_messages, stream_chat
 from server.services.wiki_retriever import retrieve_summary
 
 logger = logging.getLogger(__name__)
@@ -186,13 +186,40 @@ async def chat(req: ChatRequest):
     and streams the public LLM (DeepSeek) response via SSE. Saving the turn
     to memory is opt-in via an explicit POST /ingest, not done here."""
     cfg = app.state.settings
+    history = req.history or []
 
     topic, slugs = classify_topic(req.question)
-    if not any(slugs):
+    context_mode = "cold" if not history else ("warm" if len(history) <= 2 else "rich")
+
+    summary = ""
+    slug: str | None = None
+    if history:
+        if not any(slugs):
+            topic = await classify_with_ollama(req.question, cfg)
+            slugs = SKILL_TAXONOMY[topic]["wiki_paths"]  # type: ignore[union-attr]
+
+        retrieval_query = req.question
+        recent_user_turns = [
+            turn.content.strip()
+            for turn in history
+            if turn.role == "user" and turn.content.strip()
+        ]
+        if recent_user_turns:
+            retrieval_query = req.question + "\n\nRecent conversation:\n" + "\n".join(
+                f"- {text}" for text in recent_user_turns[-3:]
+            )
+
+        slug, summary = await retrieve_summary(retrieval_query, slugs, cfg)
+
+    if not history and not any(slugs):
         topic = await classify_with_ollama(req.question, cfg)
         slugs = SKILL_TAXONOMY[topic]["wiki_paths"]  # type: ignore[union-attr]
 
-    slug, summary = await retrieve_summary(req.question, slugs, cfg)
+    messages = build_messages(
+        req.question,
+        wiki_summary=summary,
+        recent_history=[turn.model_dump() for turn in history],
+    )
 
     async def event_stream():
         if not cfg.deepseek_api_key:
@@ -200,7 +227,7 @@ async def chat(req: ChatRequest):
             return
         full_answer = ""
         try:
-            async for token in stream_chat(req.question, summary, cfg):
+            async for token in stream_chat(messages, cfg):
                 full_answer += token
                 yield f"event: token\ndata: {json.dumps({'text': token})}\n\n"
         except Exception:
@@ -208,9 +235,23 @@ async def chat(req: ChatRequest):
             yield f"event: error\ndata: {json.dumps({'message': 'chat stream failed'})}\n\n"
             return
 
+        if not full_answer:
+            logger.warning(
+                "chat stream produced zero tokens — likely transient DeepSeek API issue. "
+                "messages=%d, first_role=%s, last_role=%s",
+                len(messages),
+                messages[0]["role"] if messages else "none",
+                messages[-1]["role"] if messages else "none",
+            )
+            yield (
+                f"event: error\n"
+                f"data: {json.dumps({'message': 'DeepSeek returned an empty response. Please try again.'})}\n\n"
+            )
+            return
+
         yield (
             f"event: done\n"
-            f"data: {json.dumps({'wiki_slug': slug, 'topic': topic, 'context_chars': len(summary)})}\n\n"
+            f"data: {json.dumps({'wiki_slug': slug, 'topic': topic, 'context_chars': len(summary), 'context_mode': context_mode, 'history_turns': len(history)})}\n\n"
         )
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")

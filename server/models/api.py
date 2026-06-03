@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -56,10 +56,26 @@ class HealthResponse(BaseModel):
     qa_pairs: int | None = None
 
 
+class ChatMessage(BaseModel):
+    """One conversational turn used to enrich the public-LLM prompt."""
+
+    role: Literal["user", "assistant"]
+    content: str = Field(..., min_length=1)
+
+
 class ChatRequest(BaseModel):
     """Request body for POST /chat (streaming)."""
 
     question: str = Field(..., min_length=1)
+    history: list[ChatMessage] = Field(default_factory=list)
+
+
+class ChatContextMode(str, Enum):
+    """How much conversational memory was injected into the /chat prompt."""
+
+    COLD = "cold"
+    WARM = "warm"
+    RICH = "rich"
 
 
 class WikiResponse(BaseModel):

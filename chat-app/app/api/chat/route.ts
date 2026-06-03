@@ -4,9 +4,19 @@ const API_BASE = process.env.API_URL || "http://localhost:8000";
 
 export async function POST(request: NextRequest) {
   let question: string;
+  let history: Array<{ role: string; content: string }> = [];
   try {
     const body = await request.json();
     question = body.question;
+    if (Array.isArray(body.history)) {
+      history = body.history
+        .filter((item: unknown): item is Record<string, unknown> => Boolean(item) && typeof item === "object")
+        .map((item) => ({
+          role: String(item.role ?? "user"),
+          content: String(item.content ?? ""),
+        }))
+        .filter((item) => item.content.trim().length > 0);
+    }
   } catch {
     return new Response(JSON.stringify({ error: "invalid JSON body" }), {
       status: 400,
@@ -24,7 +34,7 @@ export async function POST(request: NextRequest) {
   const upstream = await fetch(`${API_BASE}/chat`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ question: question.trim() }),
+    body: JSON.stringify({ question: question.trim(), history }),
   });
 
   if (!upstream.ok) {
@@ -54,7 +64,7 @@ export async function POST(request: NextRequest) {
           controller.enqueue(new TextEncoder().encode(text));
         }
         controller.close();
-      } catch (err) {
+      } catch {
         controller.enqueue(
           new TextEncoder().encode(
             `event: error\ndata: ${JSON.stringify({ message: "stream interrupted" })}\n\n`,

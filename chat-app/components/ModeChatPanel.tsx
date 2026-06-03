@@ -39,8 +39,7 @@ function formatQueryResponse(response: QueryResponse, fallbackLabel: string): st
         .map((hit, index) => {
           const snippet = hit.snippet?.trim() || "_No snippet available_";
           const tagText = hit.tags.length ? ` • ${hit.tags.slice(0, 3).join(", ")}` : "";
-          return `${index + 1}. **${hit.title}**${tagText}
-   ${snippet}`;
+          return `${index + 1}. **${hit.title}**${tagText}\n   ${snippet}`;
         })
         .join("\n\n")
     : "_No hits found._";
@@ -79,6 +78,10 @@ export function ModeChatPanel({
 
     if (kind === "qa") {
       let fullAnswer = "";
+      const historyForRequest = messages.map((message) => ({
+        role: message.role,
+        content: message.content,
+      }));
 
       try {
         await streamChat(
@@ -111,6 +114,7 @@ export function ModeChatPanel({
               });
             },
           },
+          historyForRequest,
           controller.signal,
         );
       } catch (err) {
