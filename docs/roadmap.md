@@ -23,8 +23,9 @@ Delivered so far:
 
 - **Two-tier LLM**: `/chat` streams via DeepSeek (SSE) for public Q&A; Ollama backs the ingest pipeline, wiki compilation, and semantic embeddings. `DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL`, `DEEPSEEK_BASE_URL` configured in settings.
 - **Opt-in save-to-memory**: Chat turns no longer auto-compile to the wiki. Users click "Save to memory" (with optional note) to explicitly persist.
-- **Wiki graph view**: `GET /wiki/graph` returns nodes + edges; `GET /wiki/tree` returns a sidebar catalog. Frontend includes a D3 force-directed graph widget.
-- **Dashboard UI redesign**: Stage-tab compare view (QA / RAG / LLM-Wiki) with widget-based dashboard, Sage Garden theme, SVG logo, and favicon.
+- **Wiki graph view**: `GET /wiki/graph` returns nodes + edges; `GET /wiki/tree` returns a sidebar catalog. Frontend includes a force-directed SVG graph widget in the Inventory tab.
+- **Dashboard UI redesign**: 5-tab dashboard (Compare / QA Chat / RAG / LLM-Wiki / Inventory) with widget-based dashboard, Sage Garden theme, SVG logo, and favicon.
+- **Inventory tab**: `GET /inventory` endpoint and frontend panel showing record counts across raw QA, wiki concepts, database tables, index, and log — with an expandable wiki graph card.
 - **MCP server**: Standalone stdio MCP server with four wiki tools (`wiki_search`, `wiki_ingest`, `wiki_get_page`, `wiki_stats`) for IDE integration.
 - **Document management**: Reorganized docs under `docs/references/`, updated ADRs, added CHANGELOG.
 

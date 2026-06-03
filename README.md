@@ -7,10 +7,11 @@ For a single entry point into the docs structure, see [docs/README.md](docs/READ
 
 ## What’s Included
 
+- **5-tab dashboard** (Compare / QA Chat / RAG / LLM-Wiki / Inventory) — compare raw QA streaming, hybrid retrieval, distilled wiki, and system resource usage side by side
 - `POST /chat` streams answers via **DeepSeek** (SSE) with wiki context injection; saving to memory is **opt-in**
 - `POST /ingest` queues Q/A pairs for async wiki compilation via Ollama
 - `GET /query` supports keyword, semantic, and hybrid search modes
-- `GET /wiki/{slug}`, `GET /wiki/graph`, `GET /wiki/tree`, `GET /health`, and `GET /stats` expose wiki content, graph, tree catalog, and service status
+- `GET /wiki/{slug}`, `GET /wiki/graph`, `GET /wiki/tree`, `GET /health`, `GET /stats`, and `GET /inventory` expose wiki content, graph, tree catalog, service status, and data-store record counts
 - `wiki_search`, `wiki_ingest`, `wiki_get_page`, and `wiki_stats` are available through the stdio MCP server for IDE integrations
 
 ## Architecture
@@ -45,6 +46,22 @@ For a single entry point into the docs structure, see [docs/README.md](docs/READ
 │  MCP stdio         ──► wiki_search / wiki_ingest    │
 └─────────────────────────────────────────────────────┘
 ```
+
+## Dashboard Preview
+
+The frontend offers five views through a tabbed dashboard header. Below are screenshots of each view.
+
+| Compare (all 3 stages side by side) | QA Chat (DeepSeek streaming) |
+|---|---|
+| ![Compare view](assets/memweaver-compare.png) | ![QA Chat view](assets/memweaver-qa-chat.png) |
+
+| RAG (hybrid retrieval) | LLM-Wiki (distilled memory) |
+|---|---|
+| ![RAG view](assets/memweaver-rag.png) | ![LLM-Wiki view](assets/memweaver-llm-wiki.png) |
+
+| Inventory (record counts + wiki graph) |
+|---|
+| ![Inventory view](assets/memweaver-inventory.png) |
 
 ## Prerequisites
 
@@ -101,7 +118,7 @@ pnpm dev
 # http://localhost:3000
 ```
 
-Open `http://localhost:3000` in a browser — you'll see a split-pane chat UI.
+Open `http://localhost:3000` in a browser — you'll see the **5-tab dashboard** (Compare, QA Chat, RAG, LLM-Wiki, Inventory).
 
 ## MCP Server (IDE integration)
 
@@ -137,8 +154,13 @@ Ask the agent: "Search my wiki for FastAPI patterns" — it should call `wiki_se
 ### Chat (Main Interface — Recommended Starting Point)
 
 1. Open `http://localhost:3000` in your browser
-2. Type a question in the input bar and press Enter
-3. The backend classifies your question (coding / design / ml / business / general), retrieves the most relevant wiki page, injects it as context, and streams the response token-by-token via DeepSeek SSE
+2. Use the tab bar to switch between five views:
+   - **Compare** — see QA Chat, RAG, and LLM-Wiki panels side by side
+   - **QA Chat** — type a question and stream a response via DeepSeek with wiki context injection (the main chat flow)
+   - **RAG** — query the hybrid BM25 + sqlite-vec retrieval layer
+   - **LLM-Wiki** — keyword-search the distilled wiki markdown
+   - **Inventory** — browse record counts across all data stores with an interactive wiki graph
+3. In **QA Chat**: the backend classifies your question (coding / design / ml / business / general), retrieves the most relevant wiki page, injects it as context, and streams the response token-by-token via DeepSeek SSE
 4. The right sidebar shows the active wiki article being used as context — you can inspect what knowledge the LLM is drawing from
 5. After the response completes, a **"Save to memory"** checkbox appears. Check it (optionally add a note) and click Save to persist the Q&A to the wiki. Saving is opt-in — nothing is automatically compiled.
 
@@ -315,12 +337,13 @@ After ingest, poll `GET /stats` or `GET /query?q=…` until new data appears (pi
 │   ├── pipeline/    # Ingest worker, FTS, vector search, embedder, semantic search
 │   ├── config/      # pydantic-settings (incl. DeepSeek config)
 │   └── db/          # SQLite + FTS5 + sqlite-vec
+├── assets/           # Dashboard screenshots, branding assets
 ├── chat-app/         # Next.js 16 frontend
 │   ├── app/
-│   │   ├── page.tsx           # Three-stage dashboard (compare / qa / rag / wiki)
+│   │   ├── page.tsx           # 5-tab dashboard (compare / qa / rag / wiki / inventory)
 │   │   ├── api/chat/route.ts  # SSE proxy Route Handler
 │   │   └── layout.tsx         # Root layout
-│   └── components/            # ModeChatPanel, SaveToMemory, dashboard/, ui/
+│   └── components/            # ModeChatPanel, InventoryPanel, WikiGraphView, SaveToMemory, dashboard/, ui/
 ├── wiki/            # LLM-wiki markdown vault
 ├── raw/             # Immutable Q/A JSON artifacts
 ├── docs/            # Plans, specs, design docs
