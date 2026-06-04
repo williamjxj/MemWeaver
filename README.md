@@ -2,6 +2,8 @@
 
 FastAPI backend + Next.js 16 chat frontend + stdio MCP server implementing a **dual-LLM memory pipeline** ([`docs/research/v2/s2-claude-plan.md`](docs/research/v2/s2-claude-plan.md)). Ingest Q/A pairs, search via FTS5 + vector embeddings, and chat with wiki-memory augmented LLM — **DeepSeek** serves public chat while **Ollama** handles the ingest pipeline, wiki compilation, and semantic embeddings.
 
+📖 [English](README.md) · [中文](README-cn.md)
+
 Current release: [v0.1.0](CHANGELOG.md). For release history, see [CHANGELOG.md](CHANGELOG.md), [docs/roadmap.md](docs/roadmap.md), and [docs/adr/](docs/adr/).
 For a single entry point into the docs structure, see [docs/README.md](docs/README.md).
 

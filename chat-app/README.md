@@ -1,5 +1,7 @@
 # mem-weaver Chat App
 
+📖 [English](README.md) · [中文](README-cn.md)
+
 Chat frontend for the **mem-weaver** dual-LLM memory system. Sends questions to the FastAPI backend, streams responses via SSE, renders rich markdown output with wiki memory context, and provides a 5-tab dashboard for exploring the full pipeline.
 
 ## Dashboard

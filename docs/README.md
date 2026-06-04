@@ -1,5 +1,7 @@
 # Documentation
 
+📖 [English](README.md) · [中文](README-cn.md)
+
 This directory is organized into logical categories. See the sections below to find what you need.
 
 ---

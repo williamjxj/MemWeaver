@@ -1,5 +1,7 @@
 # Topics
 
+📖 [English](README.md) · [中文](README-cn.md)
+
 Canonical topic summaries for MemWeaver. These notes are stable, project-specific summaries — more durable than working specs or multi-version LLM drafts in the [research](../research/) directory.
 
 ## Current Notes
